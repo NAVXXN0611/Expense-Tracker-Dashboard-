@@ -776,6 +776,10 @@ th {
     grid-template-columns: minmax(0, 0.9fr) minmax(520px, 1.1fr);
 }
 
+.single-auth-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(390px, 480px);
+}
+
 .combined-auth-card {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -801,6 +805,36 @@ th {
 .compact-auth-card:target {
     border-color: var(--blue);
     box-shadow: 0 0 0 4px rgba(11, 99, 255, 0.18), var(--shadow);
+}
+
+.single-auth-card {
+    position: relative;
+}
+
+.single-auth-card::before {
+    position: absolute;
+    top: 0;
+    right: 34px;
+    left: 34px;
+    height: 5px;
+    border-radius: 0 0 999px 999px;
+    background: var(--blue);
+    content: "";
+}
+
+.form-kicker {
+    margin-bottom: 8px;
+    color: var(--blue);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.single-error {
+    margin-bottom: 18px;
+    color: #991b1b;
+    background: #fee2e2;
 }
 
 @media (max-width: 980px) {
@@ -898,6 +932,10 @@ th {
     }
 
     .combined-auth-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .single-auth-shell {
         grid-template-columns: 1fr;
     }
 

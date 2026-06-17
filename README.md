@@ -76,10 +76,16 @@ python app.py
 http://127.0.0.1:5055
 ```
 
-Customer access page:
+Login page:
 
 ```text
-http://127.0.0.1:5055/auth
+http://127.0.0.1:5055/login
+```
+
+Register page:
+
+```text
+http://127.0.0.1:5055/register
 ```
 
 Internal dashboard after login:

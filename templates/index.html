@@ -15,11 +15,11 @@
         <nav class="nav-links" aria-label="Primary navigation">
             <a href="#features">Features</a>
             <a href="#preview">Preview</a>
-            <a href="{{ url_for('auth') }}">Customer Access</a>
+            <a href="{{ url_for('login') }}">Customer Access</a>
         </nav>
         <div class="header-actions">
-            <a class="header-action ghost" href="{{ url_for('auth') }}#login">Login</a>
-            <a class="header-action" href="{{ url_for('auth') }}#register">Register</a>
+            <a class="header-action ghost" href="{{ url_for('login') }}">Login</a>
+            <a class="header-action" href="{{ url_for('register') }}">Register</a>
         </div>
     </header>
 
@@ -34,14 +34,14 @@
 
                 <div class="hero-actions" aria-label="Get started">
                     <input type="email" placeholder="Enter your email" aria-label="Email address">
-                    <a href="{{ url_for('auth') }}#register">Start tracking</a>
+                    <a href="{{ url_for('register') }}">Start tracking</a>
                 </div>
 
                 <div class="choice-panel" aria-label="Expense tracking options">
                     <p>I want to:</p>
                     <div class="choice-grid">
-                        <a href="{{ url_for('auth') }}#register">Create a customer account</a>
-                        <a href="{{ url_for('auth') }}#login">Login to my dashboard</a>
+                        <a href="{{ url_for('register') }}">Create a customer account</a>
+                        <a href="{{ url_for('login') }}">Login to my dashboard</a>
                         <a href="#features">Explore features</a>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                         <span>Meals</span>
                         <strong>$345</strong>
                     </div>
-                    <a class="preview-link" href="{{ url_for('auth') }}">Unlock your dashboard</a>
+                    <a class="preview-link" href="{{ url_for('login') }}">Unlock your dashboard</a>
                 </div>
             </div>
         </section>

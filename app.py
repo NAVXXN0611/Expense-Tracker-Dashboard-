@@ -155,7 +155,8 @@ def database_error_response():
     message = DB_ERROR or "Database is not ready. Check Vercel environment variables and deployment logs."
     if request.path.startswith("/api/"):
         return jsonify({"error": message}), 503
-    return render_template("auth.html", error=message), 503
+    mode = "register" if "register" in request.path else "login"
+    return render_template("auth.html", mode=mode, error=message), 503
 
 
 def db_execute(query, params=(), fetchone=False, fetchall=False, commit=False):
@@ -193,7 +194,7 @@ def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if "user_id" not in session:
-            return redirect(url_for("auth"))
+            return redirect(url_for("login"))
         return view(*args, **kwargs)
 
     return wrapped_view
@@ -232,18 +233,25 @@ def health():
 
 @app.route("/login")
 def login():
-    return redirect(url_for("auth") + "#login")
+    return render_template(
+        "auth.html",
+        mode="login",
+        error=request.args.get("error"),
+    )
 
 
 @app.route("/register")
 def register():
-    return redirect(url_for("auth") + "#register")
+    return render_template(
+        "auth.html",
+        mode="register",
+        error=request.args.get("error"),
+    )
 
 
 @app.route("/auth")
 def auth():
-    ensure_db_ready()
-    return render_template("auth.html", error=request.args.get("error"))
+    return redirect(url_for("login"))
 
 
 @app.post("/auth/login")
@@ -261,7 +269,7 @@ def login_customer():
     )
 
     if not user or not check_password_hash(user["password_hash"], password):
-        return redirect(url_for("auth", error="Invalid email or password") + "#login")
+        return redirect(url_for("login", error="Invalid email or password"))
 
     session.clear()
     session["user_id"] = user["id"]
@@ -279,9 +287,9 @@ def register_customer():
     password = request.form.get("password", "")
 
     if not name or not email or not password:
-        return redirect(url_for("auth", error="Please fill all register fields") + "#register")
+        return redirect(url_for("register", error="Please fill all register fields"))
     if len(password) < 8:
-        return redirect(url_for("auth", error="Password must be at least 8 characters") + "#register")
+        return redirect(url_for("register", error="Password must be at least 8 characters"))
 
     try:
         user = db_execute(
@@ -317,7 +325,7 @@ def register_customer():
                 user = {"id": cursor.lastrowid, "name": name}
     except Exception as error:
         if duplicate_email_error(error):
-            return redirect(url_for("auth", error="Email is already registered") + "#register")
+            return redirect(url_for("register", error="Email is already registered"))
         raise
 
     session.clear()
