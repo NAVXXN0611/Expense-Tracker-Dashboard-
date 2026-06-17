@@ -10,6 +10,15 @@ const welcomeMessage = document.querySelector("#welcomeMessage");
 const cashFlowStatus = document.querySelector("#cashFlowStatus");
 const topCategoryValue = document.querySelector("#topCategoryValue");
 const latestActivityValue = document.querySelector("#latestActivityValue");
+const budgetForm = document.querySelector("#budgetForm");
+const budgetAmount = document.querySelector("#budgetAmount");
+const budgetMessage = document.querySelector("#budgetMessage");
+const budgetTitle = document.querySelector("#budgetTitle");
+const budgetHint = document.querySelector("#budgetHint");
+const budgetSpentValue = document.querySelector("#budgetSpentValue");
+const budgetRemainingValue = document.querySelector("#budgetRemainingValue");
+const budgetPercentValue = document.querySelector("#budgetPercentValue");
+const budgetFill = document.querySelector("#budgetFill");
 
 const currency = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -17,13 +26,19 @@ const currency = new Intl.NumberFormat("en-US", {
 });
 
 let transactions = [];
+let budget = { month: getCurrentMonth(), amount: 0 };
 
 dateInput.valueAsDate = new Date();
 renderWelcomeDate();
 
 async function loadTransactions() {
-    const response = await fetch("/api/transactions");
-    transactions = await response.json();
+    const [transactionsResponse, budgetResponse] = await Promise.all([
+        fetch("/api/transactions"),
+        fetch(`/api/budget?month=${getCurrentMonth()}`),
+    ]);
+
+    transactions = await transactionsResponse.json();
+    budget = await budgetResponse.json();
     render();
 }
 
@@ -38,6 +53,7 @@ function render() {
 
     renderSummary();
     renderWelcomeSummary();
+    renderBudget();
     renderTable(filtered);
     renderChart(filtered);
 }
@@ -119,6 +135,44 @@ function renderWelcomeSummary() {
         : "No activity";
 }
 
+function renderBudget() {
+    if (!budgetTitle || !budgetFill) return;
+
+    const monthlyExpenses = transactions
+        .filter((transaction) => {
+            return transaction.type === "expense"
+                && transaction.transaction_date.startsWith(getCurrentMonth());
+        })
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+    const budgetAmountValue = Number(budget.amount || 0);
+    const remaining = budgetAmountValue - monthlyExpenses;
+    const percentage = budgetAmountValue > 0
+        ? Math.min((monthlyExpenses / budgetAmountValue) * 100, 100)
+        : 0;
+
+    if (budgetAmountValue > 0) {
+        budgetTitle.textContent = `${formatMonthLabel(budget.month)} Budget`;
+        budgetHint.textContent = `${currency.format(budgetAmountValue)} monthly limit for expenses.`;
+        budgetAmount.value = budgetAmountValue.toFixed(2);
+        budgetSpentValue.textContent = `${currency.format(monthlyExpenses)} spent`;
+        budgetRemainingValue.textContent = remaining >= 0
+            ? `${currency.format(remaining)} remaining`
+            : `${currency.format(Math.abs(remaining))} over`;
+        budgetPercentValue.textContent = `${Math.round(percentage)}% of budget used`;
+        budgetFill.style.width = `${percentage}%`;
+        budgetFill.classList.toggle("over-budget", remaining < 0);
+    } else {
+        budgetTitle.textContent = "Set this month's spending goal";
+        budgetHint.textContent = "Track how much of your monthly expense budget has been used.";
+        budgetSpentValue.textContent = `${currency.format(monthlyExpenses)} spent`;
+        budgetRemainingValue.textContent = "No budget set";
+        budgetPercentValue.textContent = "No budget set yet";
+        budgetFill.style.width = "0%";
+        budgetFill.classList.remove("over-budget");
+    }
+}
+
 function renderTable(items) {
     if (!items.length) {
         table.innerHTML = `<tr><td colspan="6" class="empty-state">No transactions found</td></tr>`;
@@ -192,6 +246,30 @@ form.addEventListener("submit", async (event) => {
     await loadTransactions();
 });
 
+budgetForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    budgetMessage.textContent = "";
+
+    const response = await fetch("/api/budget", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            month: getCurrentMonth(),
+            amount: budgetAmount.value,
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        budgetMessage.textContent = error.error || "Could not save budget";
+        return;
+    }
+
+    budget = await response.json();
+    budgetMessage.textContent = "Budget saved";
+    renderBudget();
+});
+
 table.addEventListener("click", async (event) => {
     const button = event.target.closest(".delete-btn");
     if (!button) return;
@@ -207,6 +285,17 @@ function formatDate(value) {
     return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
+        year: "numeric",
+    });
+}
+
+function getCurrentMonth() {
+    return new Date().toISOString().slice(0, 7);
+}
+
+function formatMonthLabel(value) {
+    return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-US", {
+        month: "long",
         year: "numeric",
     });
 }

@@ -14,6 +14,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 - Customer register/login page
 - Protected internal dashboard after login
 - User-specific transaction records
+- Monthly budget goals
 - Add income and expense transactions
 - Delete transactions
 - Search transactions
@@ -121,6 +122,7 @@ The app creates these tables automatically on startup:
 
 - `users`
 - `expenses`
+- `budget_goals`
 
 ## API Endpoints
 
@@ -152,6 +154,24 @@ Content-Type: application/json
 
 ```http
 DELETE /api/transactions/1
+```
+
+### Get monthly budget
+
+```http
+GET /api/budget?month=2026-06
+```
+
+### Save monthly budget
+
+```http
+POST /api/budget
+Content-Type: application/json
+
+{
+  "month": "2026-06",
+  "amount": 1000
+}
 ```
 
 ## Deploying on Vercel

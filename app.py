@@ -91,6 +91,18 @@ def init_db():
                     )
                     """
                 )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS budget_goals (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        month TEXT NOT NULL,
+                        amount NUMERIC(12, 2) NOT NULL CHECK(amount > 0),
+                        updated_at TEXT NOT NULL,
+                        UNIQUE(user_id, month)
+                    )
+                    """
+                )
                 conn.commit()
         finally:
             conn.close()
@@ -122,6 +134,19 @@ def init_db():
                 transaction_date TEXT NOT NULL,
                 note TEXT DEFAULT '',
                 created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS budget_goals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                month TEXT NOT NULL,
+                amount REAL NOT NULL CHECK(amount > 0),
+                updated_at TEXT NOT NULL,
+                UNIQUE(user_id, month),
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
             """
@@ -211,6 +236,19 @@ def row_to_dict(row):
         "note": row["note"],
         "created_at": row["created_at"],
     }
+
+
+def budget_to_dict(row):
+    if not row:
+        return {"month": current_month(), "amount": 0}
+    return {
+        "month": row["month"],
+        "amount": float(row["amount"]),
+    }
+
+
+def current_month():
+    return datetime.now(timezone.utc).strftime("%Y-%m")
 
 
 @app.route("/")
@@ -364,6 +402,61 @@ def list_transactions():
         fetchall=True,
     )
     return jsonify([row_to_dict(row) for row in rows])
+
+
+@app.get("/api/budget")
+@login_required
+def get_budget():
+    if not ensure_db_ready():
+        return database_error_response()
+
+    month = request.args.get("month", current_month())
+    row = db_execute(
+        """
+        SELECT month, amount FROM budget_goals
+        WHERE user_id = ? AND month = ?
+        """,
+        (session["user_id"], month),
+        fetchone=True,
+    )
+    return jsonify(budget_to_dict(row))
+
+
+@app.post("/api/budget")
+@login_required
+def save_budget():
+    if not ensure_db_ready():
+        return database_error_response()
+
+    payload = request.get_json(force=True)
+    month = payload.get("month") or current_month()
+
+    try:
+        amount = round(float(payload.get("amount", 0)), 2)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Budget amount must be a number"}), 400
+
+    if amount <= 0:
+        return jsonify({"error": "Budget amount must be greater than zero"}), 400
+
+    row = db_execute(
+        """
+        INSERT INTO budget_goals (user_id, month, amount, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id, month)
+        DO UPDATE SET amount = excluded.amount, updated_at = excluded.updated_at
+        RETURNING month, amount
+        """,
+        (
+            session["user_id"],
+            month,
+            amount,
+            datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        ),
+        fetchone=True,
+        commit=True,
+    )
+    return jsonify(budget_to_dict(row))
 
 
 @app.post("/api/transactions")

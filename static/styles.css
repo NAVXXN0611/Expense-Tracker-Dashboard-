@@ -545,6 +545,106 @@ h1 {
     white-space: nowrap;
 }
 
+.budget-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+    gap: 20px;
+    align-items: end;
+    margin-bottom: 18px;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: 0 20px 55px rgba(3, 7, 18, 0.1);
+}
+
+.budget-copy p {
+    margin-bottom: 10px;
+    color: var(--blue);
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.budget-copy h2 {
+    margin-bottom: 8px;
+    font-size: clamp(1.6rem, 3vw, 2.6rem);
+    line-height: 1;
+}
+
+.budget-copy span,
+.budget-meter p {
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.budget-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.budget-form label {
+    margin: 0;
+}
+
+.budget-form button {
+    width: auto;
+    min-width: 140px;
+    padding: 0 18px;
+}
+
+.budget-form .form-message {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.budget-meter {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 10px;
+}
+
+.budget-meter-header {
+    display: flex;
+    gap: 14px;
+    justify-content: space-between;
+    color: var(--muted);
+    font-weight: 900;
+}
+
+.budget-meter-header strong {
+    color: var(--ink);
+}
+
+.budget-track {
+    height: 14px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e8eef7;
+}
+
+.budget-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--blue), #70a7ff);
+    transition: width 0.25s ease;
+}
+
+.budget-track span.over-budget {
+    background: linear-gradient(90deg, var(--danger), #f59e0b);
+}
+
+.budget-meter p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -933,8 +1033,17 @@ th {
 @media (max-width: 980px) {
     .hero-section,
     .workspace,
-    .welcome-panel {
+    .welcome-panel,
+    .budget-panel {
         grid-template-columns: 1fr;
+    }
+
+    .budget-form {
+        grid-template-columns: 1fr;
+    }
+
+    .budget-form button {
+        width: 100%;
     }
 
     .hero-visual {
