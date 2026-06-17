@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Expensive.io</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dashboard-body">
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="Expensive.io home">
+            <span class="brand-mark">E</span>
+            <span>Expensive.io</span>
+        </a>
+        <nav class="nav-links" aria-label="Dashboard navigation">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#transactions">Transactions</a>
+        </nav>
+        <div class="header-actions">
+            <span class="customer-chip">{{ user_name }}</span>
+            <a class="header-action ghost" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="dashboard" class="app-section internal-app-section">
+            <div class="section-heading light">
+                <p>Internal dashboard</p>
+                <h2>Your money, organized in real time.</h2>
+            </div>
+
+            <section class="summary-grid" aria-label="Summary">
+                <article class="summary-card">
+                    <span>Total Balance</span>
+                    <strong id="balanceValue">$0.00</strong>
+                </article>
+                <article class="summary-card income">
+                    <span>Income</span>
+                    <strong id="incomeValue">$0.00</strong>
+                </article>
+                <article class="summary-card expense">
+                    <span>Expenses</span>
+                    <strong id="expenseValue">$0.00</strong>
+                </article>
+                <article class="summary-card">
+                    <span>Transactions</span>
+                    <strong id="countValue">0</strong>
+                </article>
+            </section>
+
+            <section class="workspace">
+                <form id="transactionForm" class="panel form-panel">
+                    <div class="panel-header">
+                        <h2>Add Transaction</h2>
+                    </div>
+
+                    <label>
+                        Title
+                        <input type="text" id="title" placeholder="Groceries, salary, rent" required>
+                    </label>
+
+                    <div class="form-row">
+                        <label>
+                            Amount
+                            <input type="number" id="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                        </label>
+                        <label>
+                            Type
+                            <select id="type" required>
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="form-row">
+                        <label>
+                            Category
+                            <select id="category" required>
+                                <option>Food</option>
+                                <option>Transport</option>
+                                <option>Housing</option>
+                                <option>Utilities</option>
+                                <option>Healthcare</option>
+                                <option>Entertainment</option>
+                                <option>Salary</option>
+                                <option>Other</option>
+                            </select>
+                        </label>
+                        <label>
+                            Date
+                            <input type="date" id="transactionDate" required>
+                        </label>
+                    </div>
+
+                    <label>
+                        Note
+                        <textarea id="note" rows="3" placeholder="Optional details"></textarea>
+                    </label>
+
+                    <p id="formMessage" class="form-message" role="status"></p>
+                    <button type="submit">Add Transaction</button>
+                </form>
+
+                <section class="panel chart-panel">
+                    <div class="panel-header">
+                        <h2>Category Spend</h2>
+                        <select id="filterType" aria-label="Filter transactions">
+                            <option value="all">All</option>
+                            <option value="expense">Expenses</option>
+                            <option value="income">Income</option>
+                        </select>
+                    </div>
+                    <div id="categoryChart" class="chart"></div>
+                </section>
+            </section>
+        </section>
+
+        <section id="transactions" class="transactions-section">
+            <section class="panel table-panel">
+                <div class="panel-header">
+                    <h2>Recent Transactions</h2>
+                    <input type="search" id="searchInput" placeholder="Search transactions">
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTable"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

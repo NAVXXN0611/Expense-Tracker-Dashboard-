@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Access | Expensive.io</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="auth-body">
+    <main class="auth-shell combined-auth-shell">
+        <section class="auth-intro">
+            <a class="brand auth-brand" href="{{ url_for('index') }}" aria-label="Expensive.io home">
+                <span class="brand-mark">E</span>
+                <span>Expensive.io</span>
+            </a>
+            <p class="award-pill">Customer access</p>
+            <h1>One place to join or return to Expensive.io.</h1>
+            <p class="hero-copy">
+                New customers can create an account, and returning customers can log in to continue tracking expenses, reviewing categories, and managing money with clarity.
+            </p>
+            <div class="auth-points">
+                <span>Create expense records</span>
+                <span>Review spending insights</span>
+                <span>Manage your dashboard</span>
+            </div>
+        </section>
+
+        <section class="combined-auth-card" aria-label="Customer login and register options">
+            {% if error %}
+                <p class="auth-error">{{ error }}</p>
+            {% endif %}
+            <div id="login" class="auth-card compact-auth-card">
+                <div class="auth-card-header">
+                    <h2>Login</h2>
+                    <p>For existing Expensive.io customers.</p>
+                </div>
+                <form class="auth-form" method="post" action="{{ url_for('login_customer') }}">
+                    <label>
+                        Email address
+                        <input type="email" name="email" placeholder="you@example.com" required>
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" name="password" placeholder="Enter your password" required>
+                    </label>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+
+            <div id="register" class="auth-card compact-auth-card">
+                <div class="auth-card-header">
+                    <h2>Register</h2>
+                    <p>For new customers ready to start.</p>
+                </div>
+                <form class="auth-form" method="post" action="{{ url_for('register_customer') }}">
+                    <label>
+                        Full name
+                        <input type="text" name="name" placeholder="Naveen Kumar" required>
+                    </label>
+                    <label>
+                        Email address
+                        <input type="email" name="email" placeholder="you@example.com" required>
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" name="password" placeholder="Create a password" required>
+                    </label>
+                    <button type="submit">Create account</button>
+                </form>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

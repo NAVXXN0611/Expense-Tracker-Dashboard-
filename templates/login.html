@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Expensive.io</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="auth-body">
+    <main class="auth-shell">
+        <section class="auth-intro">
+            <a class="brand auth-brand" href="{{ url_for('index') }}" aria-label="Expensive.io home">
+                <span class="brand-mark">E</span>
+                <span>Expensive.io</span>
+            </a>
+            <p class="award-pill">Welcome back</p>
+            <h1>Pick up right where your spending left off.</h1>
+            <p class="hero-copy">
+                Sign in to review expenses, check category trends, and keep your income and spending organized in one clean dashboard.
+            </p>
+            <div class="auth-points">
+                <span>Live balance overview</span>
+                <span>Fast transaction tracking</span>
+                <span>Category spend insights</span>
+            </div>
+        </section>
+
+        <section class="auth-card" aria-label="Login form">
+            <div class="auth-card-header">
+                <h2>Login</h2>
+                <p>Access your Expensive.io workspace.</p>
+            </div>
+            <form class="auth-form">
+                <label>
+                    Email address
+                    <input type="email" placeholder="you@example.com" required>
+                </label>
+                <label>
+                    Password
+                    <input type="password" placeholder="Enter your password" required>
+                </label>
+                <div class="auth-row">
+                    <label class="check-label">
+                        <input type="checkbox">
+                        Remember me
+                    </label>
+                    <a href="{{ url_for('register') }}">Create account</a>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <p class="auth-switch">New to Expensive.io? <a href="{{ url_for('register') }}">Register now</a></p>
+        </section>
+    </main>
+</body>
+</html>

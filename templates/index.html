@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expensive.io</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="#top" aria-label="Expensive.io home">
+            <span class="brand-mark">E</span>
+            <span>Expensive.io</span>
+        </a>
+        <nav class="nav-links" aria-label="Primary navigation">
+            <a href="#features">Features</a>
+            <a href="#preview">Preview</a>
+            <a href="{{ url_for('auth') }}">Customer Access</a>
+        </nav>
+        <div class="header-actions">
+            <a class="header-action ghost" href="{{ url_for('auth') }}#login">Login</a>
+            <a class="header-action" href="{{ url_for('auth') }}#register">Register</a>
+        </div>
+    </header>
+
+    <main id="top">
+        <section class="hero-section">
+            <div class="hero-content">
+                <p class="award-pill">Smart expense tracking for modern teams</p>
+                <h1>The simple way to control every expense.</h1>
+                <p class="hero-copy">
+                    Capture spending, review categories, and understand your balance with a fast dashboard built for everyday money decisions.
+                </p>
+
+                <div class="hero-actions" aria-label="Get started">
+                    <input type="email" placeholder="Enter your email" aria-label="Email address">
+                    <a href="{{ url_for('auth') }}#register">Start tracking</a>
+                </div>
+
+                <div class="choice-panel" aria-label="Expense tracking options">
+                    <p>I want to:</p>
+                    <div class="choice-grid">
+                        <a href="{{ url_for('auth') }}#register">Create a customer account</a>
+                        <a href="{{ url_for('auth') }}#login">Login to my dashboard</a>
+                        <a href="#features">Explore features</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="preview" class="hero-visual" aria-label="Expensive.io dashboard preview">
+                <div class="phone-card">
+                    <div class="phone-top">
+                        <span></span>
+                        <strong>Receipt Scan</strong>
+                        <span></span>
+                    </div>
+                    <div class="receipt">
+                        <small>Blue Market</small>
+                        <strong>$128.40</strong>
+                        <span>Food and supplies</span>
+                    </div>
+                    <div class="scan-line"></div>
+                </div>
+
+                <div class="preview-card">
+                    <div class="preview-header">
+                        <span>Dashboard preview</span>
+                        <strong>$8,420</strong>
+                    </div>
+                    <div class="preview-bars">
+                        <span style="--bar: 72%"></span>
+                        <span style="--bar: 48%"></span>
+                        <span style="--bar: 86%"></span>
+                    </div>
+                    <div class="preview-row">
+                        <span>Travel</span>
+                        <strong>$1,260</strong>
+                    </div>
+                    <div class="preview-row">
+                        <span>Software</span>
+                        <strong>$680</strong>
+                    </div>
+                    <div class="preview-row">
+                        <span>Meals</span>
+                        <strong>$345</strong>
+                    </div>
+                    <a class="preview-link" href="{{ url_for('auth') }}">Unlock your dashboard</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="feature-section">
+            <div class="section-heading">
+                <p>Features</p>
+                <h2>Everything customers need to stay on top of spending.</h2>
+            </div>
+            <div class="feature-grid">
+                <article>
+                    <span>01</span>
+                    <h3>Private dashboard</h3>
+                    <p>Customers log in first, then manage their own internal expense workspace.</p>
+                </article>
+                <article>
+                    <span>02</span>
+                    <h3>Expense management</h3>
+                    <p>Create, categorize, and review every transaction from one clean workspace.</p>
+                </article>
+                <article>
+                    <span>03</span>
+                    <h3>Category insights</h3>
+                    <p>See where money goes with instant visual totals by category.</p>
+                </article>
+                <article>
+                    <span>04</span>
+                    <h3>Local database</h3>
+                    <p>SQLite keeps setup lightweight while preserving a path to PostgreSQL later.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

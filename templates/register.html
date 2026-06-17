@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Expensive.io</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="auth-body">
+    <main class="auth-shell">
+        <section class="auth-intro">
+            <a class="brand auth-brand" href="{{ url_for('index') }}" aria-label="Expensive.io home">
+                <span class="brand-mark">E</span>
+                <span>Expensive.io</span>
+            </a>
+            <p class="award-pill">Start free</p>
+            <h1>Create a smarter home for every expense.</h1>
+            <p class="hero-copy">
+                Register to start tracking income, expenses, notes, and category totals with a dashboard designed for fast financial clarity.
+            </p>
+            <div class="auth-points">
+                <span>No database server needed</span>
+                <span>SQLite today, PostgreSQL later</span>
+                <span>Clean black, white, and blue UI</span>
+            </div>
+        </section>
+
+        <section class="auth-card" aria-label="Register form">
+            <div class="auth-card-header">
+                <h2>Register</h2>
+                <p>Create your Expensive.io account.</p>
+            </div>
+            <form class="auth-form">
+                <label>
+                    Full name
+                    <input type="text" placeholder="Naveen Kumar" required>
+                </label>
+                <label>
+                    Email address
+                    <input type="email" placeholder="you@example.com" required>
+                </label>
+                <label>
+                    Password
+                    <input type="password" placeholder="Create a password" required>
+                </label>
+                <button type="submit">Create account</button>
+            </form>
+            <p class="auth-switch">Already registered? <a href="{{ url_for('login') }}">Login</a></p>
+        </section>
+    </main>
+</body>
+</html>
