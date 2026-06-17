@@ -839,7 +839,8 @@ function applySavedTheme() {
 
 function updateThemeToggle() {
     if (!themeToggle) return;
-    themeToggle.textContent = document.body.classList.contains("light-theme") ? "Dark mode" : "Light mode";
+    const nextTheme = document.body.classList.contains("light-theme") ? "Dark" : "Light";
+    themeToggle.innerHTML = `<span>Theme</span><strong>${nextTheme}</strong>`;
 }
 
 function readReceiptFile() {

@@ -17,7 +17,10 @@
             <a href="#transactions">Transactions</a>
         </nav>
         <div class="header-actions">
-            <button type="button" id="themeToggle" class="theme-toggle" aria-label="Switch dashboard theme">Light mode</button>
+            <button type="button" id="themeToggle" class="theme-toggle" aria-label="Switch dashboard theme">
+                <span>Theme</span>
+                <strong>Light</strong>
+            </button>
             <span class="customer-chip">{{ user_name }}</span>
             <a class="header-action ghost" href="{{ url_for('logout') }}">Logout</a>
         </div>
