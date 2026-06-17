@@ -18,6 +18,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 - Expense category donut chart
 - Income vs expense trend graph with month selector
 - Recent activity timeline
+- Recurring expenses with one-click transaction posting
 - Add income and expense transactions
 - Delete transactions
 - Search transactions
@@ -126,6 +127,7 @@ The app creates these tables automatically on startup:
 - `users`
 - `expenses`
 - `budget_goals`
+- `recurring_expenses`
 
 ## API Endpoints
 
@@ -175,6 +177,40 @@ Content-Type: application/json
   "month": "2026-06",
   "amount": 1000
 }
+```
+
+### Get recurring expenses
+
+```http
+GET /api/recurring
+```
+
+### Create recurring expense
+
+```http
+POST /api/recurring
+Content-Type: application/json
+
+{
+  "title": "Internet",
+  "category": "Utilities",
+  "amount": 59.99,
+  "frequency": "monthly",
+  "next_due_date": "2026-07-01",
+  "note": "Fiber plan"
+}
+```
+
+### Post recurring expense to transactions
+
+```http
+POST /api/recurring/1/apply
+```
+
+### Delete recurring expense
+
+```http
+DELETE /api/recurring/1
 ```
 
 ## Deploying on Vercel

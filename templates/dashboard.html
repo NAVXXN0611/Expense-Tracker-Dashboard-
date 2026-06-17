@@ -117,6 +117,56 @@
                 <div id="activityTimeline" class="activity-timeline"></div>
             </section>
 
+            <section class="panel recurring-panel" aria-label="Recurring expenses">
+                <div class="panel-header">
+                    <h2>Recurring Expenses</h2>
+                    <span id="recurringCount">No saved bills</span>
+                </div>
+                <form id="recurringForm" class="recurring-form">
+                    <div class="recurring-grid">
+                        <label>
+                            Bill name
+                            <input type="text" id="recurringTitle" placeholder="Rent, Netflix, internet" required>
+                        </label>
+                        <label>
+                            Amount
+                            <input type="number" id="recurringAmount" min="0.01" step="0.01" placeholder="0.00" required>
+                        </label>
+                        <label>
+                            Category
+                            <select id="recurringCategory" required>
+                                <option>Housing</option>
+                                <option>Utilities</option>
+                                <option>Entertainment</option>
+                                <option>Healthcare</option>
+                                <option>Transport</option>
+                                <option>Food</option>
+                                <option>Other</option>
+                            </select>
+                        </label>
+                        <label>
+                            Repeat
+                            <select id="recurringFrequency" required>
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </label>
+                        <label>
+                            Next due
+                            <input type="date" id="recurringDueDate" required>
+                        </label>
+                    </div>
+                    <label>
+                        Note
+                        <textarea id="recurringNote" rows="2" placeholder="Optional recurring bill details"></textarea>
+                    </label>
+                    <p id="recurringMessage" class="form-message" role="status"></p>
+                    <button type="submit">Save Recurring Bill</button>
+                </form>
+                <div id="recurringList" class="recurring-list"></div>
+            </section>
+
             <section class="workspace">
                 <form id="transactionForm" class="panel form-panel">
                     <div class="panel-header">

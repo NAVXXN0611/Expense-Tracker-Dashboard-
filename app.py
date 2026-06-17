@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+import calendar
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 import os
 from pathlib import Path
@@ -103,6 +104,21 @@ def init_db():
                     )
                     """
                 )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS recurring_expenses (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        title TEXT NOT NULL,
+                        category TEXT NOT NULL,
+                        amount NUMERIC(12, 2) NOT NULL CHECK(amount > 0),
+                        frequency TEXT NOT NULL CHECK(frequency IN ('weekly', 'monthly', 'yearly')),
+                        next_due_date TEXT NOT NULL,
+                        note TEXT DEFAULT '',
+                        created_at TEXT NOT NULL
+                    )
+                    """
+                )
                 conn.commit()
         finally:
             conn.close()
@@ -147,6 +163,22 @@ def init_db():
                 amount REAL NOT NULL CHECK(amount > 0),
                 updated_at TEXT NOT NULL,
                 UNIQUE(user_id, month),
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS recurring_expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                amount REAL NOT NULL CHECK(amount > 0),
+                frequency TEXT NOT NULL CHECK(frequency IN ('weekly', 'monthly', 'yearly')),
+                next_due_date TEXT NOT NULL,
+                note TEXT DEFAULT '',
+                created_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
             """
@@ -247,8 +279,40 @@ def budget_to_dict(row):
     }
 
 
+def recurring_to_dict(row):
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "category": row["category"],
+        "amount": float(row["amount"]),
+        "frequency": row["frequency"],
+        "next_due_date": row["next_due_date"],
+        "note": row["note"],
+        "created_at": row["created_at"],
+    }
+
+
 def current_month():
     return datetime.now(timezone.utc).strftime("%Y-%m")
+
+
+def next_recurring_date(value, frequency):
+    due_date = datetime.strptime(value, "%Y-%m-%d").date()
+    if frequency == "weekly":
+        return (due_date + timedelta(days=7)).isoformat()
+    if frequency == "yearly":
+        try:
+            return due_date.replace(year=due_date.year + 1).isoformat()
+        except ValueError:
+            return due_date.replace(year=due_date.year + 1, day=28).isoformat()
+
+    month = due_date.month + 1
+    year = due_date.year
+    if month > 12:
+        month = 1
+        year += 1
+    last_day = calendar.monthrange(year, month)[1]
+    return due_date.replace(year=year, month=month, day=min(due_date.day, last_day)).isoformat()
 
 
 @app.route("/")
@@ -457,6 +521,225 @@ def save_budget():
         commit=True,
     )
     return jsonify(budget_to_dict(row))
+
+
+@app.get("/api/recurring")
+@login_required
+def list_recurring():
+    if not ensure_db_ready():
+        return database_error_response()
+
+    rows = db_execute(
+        """
+        SELECT * FROM recurring_expenses
+        WHERE user_id = ?
+        ORDER BY next_due_date ASC, id DESC
+        """,
+        (session["user_id"],),
+        fetchall=True,
+    )
+    return jsonify([recurring_to_dict(row) for row in rows])
+
+
+@app.post("/api/recurring")
+@login_required
+def create_recurring():
+    if not ensure_db_ready():
+        return database_error_response()
+
+    payload = request.get_json(force=True)
+    required = ["title", "category", "amount", "frequency", "next_due_date"]
+    missing = [field for field in required if not payload.get(field)]
+    if missing:
+        return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
+
+    try:
+        amount = round(float(payload["amount"]), 2)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Amount must be a number"}), 400
+
+    if amount <= 0:
+        return jsonify({"error": "Amount must be greater than zero"}), 400
+
+    if payload["frequency"] not in {"weekly", "monthly", "yearly"}:
+        return jsonify({"error": "Frequency must be weekly, monthly, or yearly"}), 400
+
+    try:
+        datetime.strptime(payload["next_due_date"], "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"error": "Next due date must use YYYY-MM-DD format"}), 400
+
+    if USE_POSTGRES:
+        row = db_execute(
+            """
+            INSERT INTO recurring_expenses
+                (user_id, title, category, amount, frequency, next_due_date, note, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING *
+            """,
+            (
+                session["user_id"],
+                payload["title"].strip(),
+                payload["category"].strip(),
+                amount,
+                payload["frequency"],
+                payload["next_due_date"],
+                payload.get("note", "").strip(),
+                datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            ),
+            fetchone=True,
+            commit=True,
+        )
+    else:
+        with get_db() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO recurring_expenses
+                    (user_id, title, category, amount, frequency, next_due_date, note, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    session["user_id"],
+                    payload["title"].strip(),
+                    payload["category"].strip(),
+                    amount,
+                    payload["frequency"],
+                    payload["next_due_date"],
+                    payload.get("note", "").strip(),
+                    datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM recurring_expenses WHERE id = ?", (cursor.lastrowid,)
+            ).fetchone()
+
+    return jsonify(recurring_to_dict(row)), 201
+
+
+@app.post("/api/recurring/<int:recurring_id>/apply")
+@login_required
+def apply_recurring(recurring_id):
+    if not ensure_db_ready():
+        return database_error_response()
+
+    recurring = db_execute(
+        """
+        SELECT * FROM recurring_expenses
+        WHERE id = ? AND user_id = ?
+        """,
+        (recurring_id, session["user_id"]),
+        fetchone=True,
+    )
+    if not recurring:
+        return jsonify({"error": "Recurring expense not found"}), 404
+
+    next_due = next_recurring_date(recurring["next_due_date"], recurring["frequency"])
+    note = recurring["note"] or f"Recurring {recurring['frequency']} expense"
+
+    if USE_POSTGRES:
+        transaction = db_execute(
+            """
+            INSERT INTO expenses
+                (user_id, title, category, amount, type, transaction_date, note, created_at)
+            VALUES (?, ?, ?, ?, 'expense', ?, ?, ?)
+            RETURNING *
+            """,
+            (
+                session["user_id"],
+                recurring["title"],
+                recurring["category"],
+                recurring["amount"],
+                recurring["next_due_date"],
+                note,
+                datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            ),
+            fetchone=True,
+            commit=True,
+        )
+        updated = db_execute(
+            """
+            UPDATE recurring_expenses
+            SET next_due_date = ?
+            WHERE id = ? AND user_id = ?
+            RETURNING *
+            """,
+            (next_due, recurring_id, session["user_id"]),
+            fetchone=True,
+            commit=True,
+        )
+    else:
+        with get_db() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO expenses
+                    (user_id, title, category, amount, type, transaction_date, note, created_at)
+                VALUES (?, ?, ?, ?, 'expense', ?, ?, ?)
+                """,
+                (
+                    session["user_id"],
+                    recurring["title"],
+                    recurring["category"],
+                    recurring["amount"],
+                    recurring["next_due_date"],
+                    note,
+                    datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                ),
+            )
+            transaction = conn.execute(
+                "SELECT * FROM expenses WHERE id = ?", (cursor.lastrowid,)
+            ).fetchone()
+            conn.execute(
+                """
+                UPDATE recurring_expenses
+                SET next_due_date = ?
+                WHERE id = ? AND user_id = ?
+                """,
+                (next_due, recurring_id, session["user_id"]),
+            )
+            updated = conn.execute(
+                """
+                SELECT * FROM recurring_expenses
+                WHERE id = ? AND user_id = ?
+                """,
+                (recurring_id, session["user_id"]),
+            ).fetchone()
+
+    return jsonify(
+        {
+            "transaction": row_to_dict(transaction),
+            "recurring": recurring_to_dict(updated),
+        }
+    ), 201
+
+
+@app.delete("/api/recurring/<int:recurring_id>")
+@login_required
+def delete_recurring(recurring_id):
+    if not ensure_db_ready():
+        return database_error_response()
+
+    if USE_POSTGRES:
+        deleted = db_execute(
+            """
+            DELETE FROM recurring_expenses
+            WHERE id = ? AND user_id = ?
+            RETURNING id
+            """,
+            (recurring_id, session["user_id"]),
+            fetchone=True,
+            commit=True,
+        )
+        if not deleted:
+            return jsonify({"error": "Recurring expense not found"}), 404
+    else:
+        with get_db() as conn:
+            cursor = conn.execute(
+                "DELETE FROM recurring_expenses WHERE id = ? AND user_id = ?",
+                (recurring_id, session["user_id"]),
+            )
+            if cursor.rowcount == 0:
+                return jsonify({"error": "Recurring expense not found"}), 404
+    return "", 204
 
 
 @app.post("/api/transactions")

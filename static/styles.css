@@ -854,6 +854,99 @@ h1 {
     line-height: 1.5;
 }
 
+.recurring-panel {
+    margin-bottom: 18px;
+}
+
+.recurring-panel .panel-header span {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 900;
+}
+
+.recurring-form {
+    display: grid;
+    gap: 10px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.recurring-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr repeat(3, 1fr);
+    gap: 12px;
+}
+
+.recurring-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.recurring-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--off-white);
+}
+
+.recurring-item strong {
+    display: block;
+    color: var(--ink);
+    font-size: 1rem;
+}
+
+.recurring-item p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.recurring-item small {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.recurring-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.recurring-actions span {
+    min-width: 92px;
+    color: var(--ink);
+    font-weight: 900;
+    text-align: right;
+}
+
+.recurring-actions button {
+    width: auto;
+    min-height: 38px;
+    padding: 0 14px;
+    white-space: nowrap;
+}
+
+.secondary-btn {
+    border-color: rgba(11, 99, 255, 0.22);
+    background: rgba(11, 99, 255, 0.1);
+    color: var(--blue);
+}
+
+.secondary-btn:hover {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: var(--white);
+}
+
 .summary-card {
     padding: 24px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
@@ -1320,6 +1413,10 @@ th {
         grid-template-columns: 1fr;
     }
 
+    .recurring-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .budget-form button {
         width: 100%;
     }
@@ -1384,6 +1481,20 @@ th {
         width: 100%;
     }
 
+    .recurring-item,
+    .recurring-actions {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+    }
+
+    .recurring-actions {
+        display: grid;
+    }
+
+    .recurring-actions span {
+        text-align: left;
+    }
+
     .hero-actions a {
         width: 100%;
     }
@@ -1416,6 +1527,7 @@ th {
     .feature-grid,
     .summary-grid,
     .trend-chart,
+    .recurring-grid,
     .form-row,
     .bar-row,
     .donut-legend-row {

@@ -27,6 +27,11 @@ const trendRangeLabel = document.querySelector("#trendRangeLabel");
 const trendMonthPicker = document.querySelector("#trendMonthPicker");
 const activityTimeline = document.querySelector("#activityTimeline");
 const activityCount = document.querySelector("#activityCount");
+const recurringForm = document.querySelector("#recurringForm");
+const recurringList = document.querySelector("#recurringList");
+const recurringCount = document.querySelector("#recurringCount");
+const recurringDueDate = document.querySelector("#recurringDueDate");
+const recurringMessage = document.querySelector("#recurringMessage");
 
 const categoryColors = [
     "#0b63ff",
@@ -46,9 +51,13 @@ const currency = new Intl.NumberFormat("en-US", {
 
 let transactions = [];
 let budget = { month: getCurrentMonth(), amount: 0 };
+let recurringItems = [];
 let selectedTrendMonth = getCurrentMonth();
 
 dateInput.valueAsDate = new Date();
+if (recurringDueDate) {
+    recurringDueDate.valueAsDate = new Date();
+}
 if (trendMonthPicker) {
     trendMonthPicker.value = selectedTrendMonth;
     trendMonthPicker.max = getCurrentMonth();
@@ -56,13 +65,15 @@ if (trendMonthPicker) {
 renderWelcomeDate();
 
 async function loadTransactions() {
-    const [transactionsResponse, budgetResponse] = await Promise.all([
+    const [transactionsResponse, budgetResponse, recurringResponse] = await Promise.all([
         fetch("/api/transactions"),
         fetch(`/api/budget?month=${getCurrentMonth()}`),
+        fetch("/api/recurring"),
     ]);
 
     transactions = await transactionsResponse.json();
     budget = await budgetResponse.json();
+    recurringItems = await recurringResponse.json();
     render();
 }
 
@@ -83,6 +94,7 @@ function render() {
     renderDonutChart();
     renderTrendChart();
     renderActivityTimeline();
+    renderRecurringExpenses();
 }
 
 function renderSummary() {
@@ -359,6 +371,38 @@ function renderActivityTimeline() {
     }).join("");
 }
 
+function renderRecurringExpenses() {
+    if (!recurringList || !recurringCount) return;
+
+    recurringCount.textContent = recurringItems.length
+        ? `${recurringItems.length} saved bills`
+        : "No saved bills";
+
+    if (!recurringItems.length) {
+        recurringList.innerHTML = `
+            <div class="empty-state compact-empty">
+                Save bills like rent, subscriptions, internet, or EMI to post them quickly each cycle.
+            </div>
+        `;
+        return;
+    }
+
+    recurringList.innerHTML = recurringItems.map((item) => `
+        <article class="recurring-item">
+            <div>
+                <strong>${escapeHtml(item.title)}</strong>
+                <p>${escapeHtml(item.category)} &middot; ${capitalize(item.frequency)} &middot; Due ${formatDate(item.next_due_date)}</p>
+                ${item.note ? `<small>${escapeHtml(item.note)}</small>` : ""}
+            </div>
+            <div class="recurring-actions">
+                <span>${currency.format(item.amount)}</span>
+                <button type="button" class="secondary-btn apply-recurring-btn" data-id="${item.id}">Post</button>
+                <button type="button" class="delete-btn delete-recurring-btn" data-id="${item.id}">Delete</button>
+            </div>
+        </article>
+    `).join("");
+}
+
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formMessage.textContent = "";
@@ -413,6 +457,60 @@ budgetForm?.addEventListener("submit", async (event) => {
     renderBudget();
 });
 
+recurringForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    recurringMessage.textContent = "";
+
+    const payload = {
+        title: document.querySelector("#recurringTitle").value,
+        amount: document.querySelector("#recurringAmount").value,
+        category: document.querySelector("#recurringCategory").value,
+        frequency: document.querySelector("#recurringFrequency").value,
+        next_due_date: recurringDueDate.value,
+        note: document.querySelector("#recurringNote").value,
+    };
+
+    const response = await fetch("/api/recurring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        recurringMessage.textContent = error.error || "Could not save recurring bill";
+        return;
+    }
+
+    recurringForm.reset();
+    recurringDueDate.valueAsDate = new Date();
+    recurringMessage.textContent = "Recurring bill saved";
+    await loadTransactions();
+});
+
+recurringList?.addEventListener("click", async (event) => {
+    const applyButton = event.target.closest(".apply-recurring-btn");
+    const deleteButton = event.target.closest(".delete-recurring-btn");
+
+    if (applyButton) {
+        const response = await fetch(`/api/recurring/${applyButton.dataset.id}/apply`, { method: "POST" });
+        if (!response.ok) {
+            const error = await response.json();
+            recurringMessage.textContent = error.error || "Could not post recurring bill";
+            return;
+        }
+        recurringMessage.textContent = "Recurring bill posted to transactions";
+        await loadTransactions();
+        return;
+    }
+
+    if (deleteButton) {
+        await fetch(`/api/recurring/${deleteButton.dataset.id}`, { method: "DELETE" });
+        recurringMessage.textContent = "Recurring bill deleted";
+        await loadTransactions();
+    }
+});
+
 table.addEventListener("click", async (event) => {
     const button = event.target.closest(".delete-btn");
     if (!button) return;
@@ -458,6 +556,10 @@ function formatRangeMonthLabel(value) {
         month: "short",
         year: "numeric",
     });
+}
+
+function capitalize(value) {
+    return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
 function getRecentMonths(count, endMonth = getCurrentMonth()) {
