@@ -2,6 +2,23 @@
 
 A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, and PostgreSQL.
 
+## Internship Submission Details
+
+| Field | Details |
+| --- | --- |
+| Intern ID | CITS3447 |
+| Full Name | Naveen Kumar R V |
+| No. of Weeks | 4 |
+| Project Name | Expense Tracker Dashboard |
+| Project Scope | Source code, documentation, and output images for a full-stack expense tracker dashboard with authentication, transaction management, analytics, PostgreSQL backend, and deployment support. |
+
+## Submission Includes
+
+- Source Code: `app.py`, `static/`, `templates/`, `requirements.txt`, and `vercel.json`
+- README File: `README.md`
+- Documentation: setup instructions, PostgreSQL configuration, API endpoints, and Vercel deployment steps
+- Screenshots / Output Images: project output images and visual assets are included in the repository where applicable, including `static/fintrack-graph.png`
+
 ## Backend
 
 For production hosting, this project uses **PostgreSQL** through the `DATABASE_URL` environment variable. PostgreSQL is the right choice for customer accounts, persistent transactions, hosted backups, and real multi-user use.
