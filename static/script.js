@@ -25,6 +25,8 @@ const donutTotalLabel = document.querySelector("#donutTotalLabel");
 const trendChart = document.querySelector("#trendChart");
 const trendRangeLabel = document.querySelector("#trendRangeLabel");
 const trendMonthPicker = document.querySelector("#trendMonthPicker");
+const activityTimeline = document.querySelector("#activityTimeline");
+const activityCount = document.querySelector("#activityCount");
 
 const categoryColors = [
     "#0b63ff",
@@ -80,6 +82,7 @@ function render() {
     renderChart(filtered);
     renderDonutChart();
     renderTrendChart();
+    renderActivityTimeline();
 }
 
 function renderSummary() {
@@ -315,6 +318,43 @@ function renderTrendChart() {
                 </div>
                 <strong>${item.label}</strong>
             </div>
+        `;
+    }).join("");
+}
+
+function renderActivityTimeline() {
+    if (!activityTimeline || !activityCount) return;
+
+    const recent = [...transactions]
+        .sort((a, b) => new Date(`${b.transaction_date}T00:00:00`) - new Date(`${a.transaction_date}T00:00:00`))
+        .slice(0, 5);
+
+    activityCount.textContent = recent.length ? `${recent.length} latest items` : "No activity yet";
+
+    if (!recent.length) {
+        activityTimeline.innerHTML = `
+            <div class="empty-state compact-empty">
+                Add your first income or expense to build a live activity timeline.
+            </div>
+        `;
+        return;
+    }
+
+    activityTimeline.innerHTML = recent.map((transaction) => {
+        const isIncome = transaction.type === "income";
+        const signedAmount = `${isIncome ? "+" : "-"}${currency.format(transaction.amount)}`;
+        return `
+            <article class="activity-item ${transaction.type}">
+                <span class="activity-dot" aria-hidden="true"></span>
+                <div>
+                    <div class="activity-topline">
+                        <strong>${escapeHtml(transaction.title)}</strong>
+                        <span>${signedAmount}</span>
+                    </div>
+                    <p>${escapeHtml(transaction.category)} &middot; ${formatDate(transaction.transaction_date)}</p>
+                    ${transaction.note ? `<small>${escapeHtml(transaction.note)}</small>` : ""}
+                </div>
+            </article>
         `;
     }).join("");
 }
