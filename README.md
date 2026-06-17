@@ -10,7 +10,7 @@ A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, 
 | Full Name | Naveen Kumar R V |
 | No. of Weeks | 4 |
 | Project Name | Expense Tracker Dashboard |
-| Project Scope | Source code, documentation, and output images for a full-stack expense tracker dashboard with authentication, transaction management, analytics, PostgreSQL backend, and deployment support. |
+| Project Scope | A standard Expense Tracker Dashboard project gives users actionable control over their personal or business finances. The core scope centers on tracking cash flow through automated transaction aggregation, intuitive data visualization (charts, graphs), and budget management tools. |
 
 ## Submission Includes
 
