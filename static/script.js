@@ -803,28 +803,64 @@ function getExpenseCategoryTotals(items) {
 
 function exportTransactionsCsv() {
     const rows = currentFilteredTransactions.length ? currentFilteredTransactions : getFilteredTransactions();
-    const headers = ["Title", "Category", "Type", "Amount", "Date", "Note", "Receipt"];
+    const printedAt = new Date();
+    const headers = ["Bill/Expense", "Category", "Due Date", "Budgeted Amount", "Actual Amount", "Status", "Notes"];
     const csv = [
+        csvCell("FinTrack"),
+        csvCell(`Bill printed: ${printedAt.toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+        })}`),
+        "",
         headers.join(","),
-        ...rows.map((transaction) => [
-            transaction.title,
-            transaction.category,
-            transaction.type,
-            transaction.amount,
-            transaction.transaction_date,
-            transaction.note || "",
-            transaction.receipt_name || "",
-        ].map(csvCell).join(",")),
+        ...rows.map((transaction) => billCsvRow(transaction)),
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `fintrack-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `fintrack-bill-${printedAt.toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(link.href);
+}
+
+function billCsvRow(transaction) {
+    const recurringMatch = recurringItems.find((item) => (
+        item.title.toLowerCase() === transaction.title.toLowerCase()
+        && item.category === transaction.category
+    ));
+    const budgetedAmount = recurringMatch?.amount ?? transaction.amount;
+    const notes = [
+        transaction.note || "",
+        transaction.receipt_name ? `Receipt: ${transaction.receipt_name}` : "",
+    ].filter(Boolean).join(" | ");
+
+    return [
+        transaction.title,
+        transaction.category,
+        formatCsvDate(transaction.transaction_date),
+        formatCsvMoney(budgetedAmount),
+        formatCsvMoney(transaction.amount),
+        transaction.type === "expense" ? "Paid" : "Received",
+        notes || "-",
+    ].map(csvCell).join(",");
+}
+
+function formatCsvDate(value) {
+    return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function formatCsvMoney(value) {
+    return currency.format(Number(value) || 0);
 }
 
 function csvCell(value) {
