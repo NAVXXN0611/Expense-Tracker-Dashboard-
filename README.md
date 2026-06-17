@@ -88,6 +88,12 @@ Internal dashboard after login:
 http://127.0.0.1:5055/dashboard
 ```
 
+Health check:
+
+```text
+http://127.0.0.1:5055/health
+```
+
 ## PostgreSQL Setup
 
 For production, create a hosted PostgreSQL database with a provider such as Neon, Supabase, Railway, Render, or Vercel Marketplace integrations.
@@ -165,3 +171,11 @@ DATABASE_URL=your-hosted-postgresql-connection-string
 7. Deploy.
 
 Important: Do not use SQLite for the Vercel production database. Use the hosted PostgreSQL `DATABASE_URL` so customer accounts and transactions persist correctly.
+
+After deployment, open:
+
+```text
+https://your-vercel-domain.vercel.app/health
+```
+
+If `database_ready` is `false`, check that `SECRET_KEY` and `DATABASE_URL` are added to the correct Vercel environment and redeploy.

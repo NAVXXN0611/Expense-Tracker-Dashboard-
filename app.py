@@ -16,17 +16,13 @@ USE_POSTGRES = DATABASE_URL.startswith(("postgres://", "postgresql://"))
 IS_VERCEL = os.environ.get("VERCEL") == "1"
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
-if IS_VERCEL and not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY must be set in Vercel environment variables.")
-
-if IS_VERCEL and not USE_POSTGRES:
-    raise RuntimeError("DATABASE_URL must be set to a PostgreSQL database on Vercel.")
-
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY or "dev-secret-change-before-production"
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = IS_VERCEL
+DB_READY = False
+DB_ERROR = ""
 
 
 def postgres_url():
@@ -55,6 +51,16 @@ def get_db():
 
 
 def init_db():
+    global DB_ERROR
+
+    if IS_VERCEL and not SECRET_KEY:
+        DB_ERROR = "SECRET_KEY is missing in Vercel environment variables."
+        return False
+
+    if IS_VERCEL and not USE_POSTGRES:
+        DB_ERROR = "DATABASE_URL must be set to a PostgreSQL database in Vercel."
+        return False
+
     if USE_POSTGRES:
         conn = get_db()
         try:
@@ -88,7 +94,8 @@ def init_db():
                 conn.commit()
         finally:
             conn.close()
-        return
+        DB_ERROR = ""
+        return True
 
     conn = get_db()
     try:
@@ -128,6 +135,27 @@ def init_db():
         conn.commit()
     finally:
         conn.close()
+    DB_ERROR = ""
+    return True
+
+
+def ensure_db_ready():
+    global DB_READY, DB_ERROR
+    if DB_READY:
+        return True
+    try:
+        DB_READY = init_db()
+    except Exception as error:
+        DB_READY = False
+        DB_ERROR = str(error)
+    return DB_READY
+
+
+def database_error_response():
+    message = DB_ERROR or "Database is not ready. Check Vercel environment variables and deployment logs."
+    if request.path.startswith("/api/"):
+        return jsonify({"error": message}), 503
+    return render_template("auth.html", error=message), 503
 
 
 def db_execute(query, params=(), fetchone=False, fetchall=False, commit=False):
@@ -189,6 +217,19 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/health")
+def health():
+    ready = ensure_db_ready()
+    status = 200 if ready else 503
+    return jsonify(
+        {
+            "database_ready": ready,
+            "using_postgres": USE_POSTGRES,
+            "error": "" if ready else DB_ERROR,
+        }
+    ), status
+
+
 @app.route("/login")
 def login():
     return redirect(url_for("auth") + "#login")
@@ -201,11 +242,15 @@ def register():
 
 @app.route("/auth")
 def auth():
+    ensure_db_ready()
     return render_template("auth.html", error=request.args.get("error"))
 
 
 @app.post("/auth/login")
 def login_customer():
+    if not ensure_db_ready():
+        return database_error_response()
+
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
 
@@ -226,6 +271,9 @@ def login_customer():
 
 @app.post("/auth/register")
 def register_customer():
+    if not ensure_db_ready():
+        return database_error_response()
+
     name = request.form.get("name", "").strip()
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
@@ -281,6 +329,8 @@ def register_customer():
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    if not ensure_db_ready():
+        return database_error_response()
     return render_template("dashboard.html", user_name=session.get("user_name", "Customer"))
 
 
@@ -293,6 +343,9 @@ def logout():
 @app.get("/api/transactions")
 @login_required
 def list_transactions():
+    if not ensure_db_ready():
+        return database_error_response()
+
     rows = db_execute(
         """
         SELECT * FROM expenses
@@ -308,6 +361,9 @@ def list_transactions():
 @app.post("/api/transactions")
 @login_required
 def create_transaction():
+    if not ensure_db_ready():
+        return database_error_response()
+
     payload = request.get_json(force=True)
     required = ["title", "category", "amount", "type", "transaction_date"]
     missing = [field for field in required if not payload.get(field)]
@@ -380,6 +436,9 @@ def create_transaction():
 @app.delete("/api/transactions/<int:transaction_id>")
 @login_required
 def delete_transaction(transaction_id):
+    if not ensure_db_ready():
+        return database_error_response()
+
     if USE_POSTGRES:
         deleted = db_execute(
             """
@@ -404,7 +463,7 @@ def delete_transaction(transaction_id):
     return "", 204
 
 
-init_db()
+ensure_db_ready()
 
 
 if __name__ == "__main__":
