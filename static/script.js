@@ -24,6 +24,7 @@ const donutLegend = document.querySelector("#donutLegend");
 const donutTotalLabel = document.querySelector("#donutTotalLabel");
 const trendChart = document.querySelector("#trendChart");
 const trendRangeLabel = document.querySelector("#trendRangeLabel");
+const trendMonthPicker = document.querySelector("#trendMonthPicker");
 
 const categoryColors = [
     "#0b63ff",
@@ -43,8 +44,13 @@ const currency = new Intl.NumberFormat("en-US", {
 
 let transactions = [];
 let budget = { month: getCurrentMonth(), amount: 0 };
+let selectedTrendMonth = getCurrentMonth();
 
 dateInput.valueAsDate = new Date();
+if (trendMonthPicker) {
+    trendMonthPicker.value = selectedTrendMonth;
+    trendMonthPicker.max = getCurrentMonth();
+}
 renderWelcomeDate();
 
 async function loadTransactions() {
@@ -280,7 +286,7 @@ function renderDonutChart() {
 function renderTrendChart() {
     if (!trendChart || !trendRangeLabel) return;
 
-    const months = getRecentMonths(6);
+    const months = getRecentMonths(6, selectedTrendMonth);
     const monthlyTotals = months.map((month) => {
         const label = formatShortMonthLabel(month);
         const income = transactions
@@ -297,7 +303,7 @@ function renderTrendChart() {
         ...monthlyTotals.flatMap((item) => [item.income, item.expense]),
     );
 
-    trendRangeLabel.textContent = `${monthlyTotals[0].label} - ${monthlyTotals[monthlyTotals.length - 1].label}`;
+    trendRangeLabel.textContent = `${formatRangeMonthLabel(monthlyTotals[0].month)} - ${formatRangeMonthLabel(monthlyTotals[monthlyTotals.length - 1].month)}`;
     trendChart.innerHTML = monthlyTotals.map((item) => {
         const incomeHeight = Math.max((item.income / max) * 100, item.income > 0 ? 6 : 0);
         const expenseHeight = Math.max((item.expense / max) * 100, item.expense > 0 ? 6 : 0);
@@ -377,6 +383,10 @@ table.addEventListener("click", async (event) => {
 
 filterType.addEventListener("change", render);
 searchInput.addEventListener("input", render);
+trendMonthPicker?.addEventListener("change", () => {
+    selectedTrendMonth = trendMonthPicker.value || getCurrentMonth();
+    renderTrendChart();
+});
 
 function formatDate(value) {
     return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
@@ -403,10 +413,17 @@ function formatShortMonthLabel(value) {
     });
 }
 
-function getRecentMonths(count) {
+function formatRangeMonthLabel(value) {
+    return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function getRecentMonths(count, endMonth = getCurrentMonth()) {
     const months = [];
-    const date = new Date();
-    date.setDate(1);
+    const [year, month] = endMonth.split("-").map(Number);
+    const date = new Date(year, month - 1, 1);
 
     for (let index = count - 1; index >= 0; index -= 1) {
         const item = new Date(date.getFullYear(), date.getMonth() - index, 1);

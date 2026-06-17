@@ -662,6 +662,43 @@ h1 {
     font-weight: 900;
 }
 
+.trend-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.trend-controls label {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.trend-controls input {
+    width: 146px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--off-white);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 900;
+    padding: 9px 10px;
+}
+
+.trend-controls input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(11, 99, 255, 0.14);
+    outline: none;
+}
+
 .trend-chart {
     display: grid;
     grid-template-columns: repeat(6, minmax(70px, 1fr));
@@ -1261,6 +1298,15 @@ th {
     .panel-header {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .trend-controls {
+        justify-content: flex-start;
+    }
+
+    .trend-controls label,
+    .trend-controls input {
+        width: 100%;
     }
 
     .hero-actions a {

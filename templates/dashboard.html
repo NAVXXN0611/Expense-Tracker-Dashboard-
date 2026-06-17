@@ -94,7 +94,13 @@
             <section class="panel trend-panel" aria-label="Income versus expense trend">
                 <div class="panel-header">
                     <h2>Income vs Expense Trend</h2>
-                    <span id="trendRangeLabel">Recent months</span>
+                    <div class="trend-controls">
+                        <label for="trendMonthPicker">
+                            <span>View ending</span>
+                            <input type="month" id="trendMonthPicker" aria-label="Choose trend ending month">
+                        </label>
+                        <span id="trendRangeLabel">Recent months</span>
+                    </div>
                 </div>
                 <div id="trendChart" class="trend-chart"></div>
                 <div class="trend-legend" aria-label="Trend legend">
