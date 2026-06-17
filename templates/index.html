@@ -6,7 +6,14 @@
     <title>FinTrack</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
+<body class="intro-body">
+    <div id="openingSplash" class="opening-splash" aria-label="FinTrack opening logo">
+        <div class="splash-logo">
+            <span>NK</span>
+        </div>
+        <p>FinTrack</p>
+    </div>
+
     <header class="site-header">
         <a class="brand" href="#top" aria-label="FinTrack home">
             <span class="brand-mark">F</span>
@@ -103,5 +110,15 @@
             </div>
         </section>
     </main>
+    <script>
+        window.addEventListener("load", () => {
+            const splash = document.querySelector("#openingSplash");
+            if (!splash) return;
+            window.setTimeout(() => {
+                splash.classList.add("is-hidden");
+                window.setTimeout(() => splash.remove(), 650);
+            }, 2000);
+        });
+    </script>
 </body>
 </html>
