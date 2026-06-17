@@ -19,6 +19,20 @@ const budgetSpentValue = document.querySelector("#budgetSpentValue");
 const budgetRemainingValue = document.querySelector("#budgetRemainingValue");
 const budgetPercentValue = document.querySelector("#budgetPercentValue");
 const budgetFill = document.querySelector("#budgetFill");
+const categoryDonut = document.querySelector("#categoryDonut");
+const donutLegend = document.querySelector("#donutLegend");
+const donutTotalLabel = document.querySelector("#donutTotalLabel");
+
+const categoryColors = [
+    "#0b63ff",
+    "#14b8a6",
+    "#f59e0b",
+    "#ef4444",
+    "#8b5cf6",
+    "#22c55e",
+    "#06b6d4",
+    "#f97316",
+];
 
 const currency = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -56,6 +70,7 @@ function render() {
     renderBudget();
     renderTable(filtered);
     renderChart(filtered);
+    renderDonutChart();
 }
 
 function renderSummary() {
@@ -211,6 +226,49 @@ function renderChart(items) {
                 <span class="bar-label">${escapeHtml(category)}</span>
                 <span class="bar-track"><span class="bar-fill" style="width:${width}%"></span></span>
                 <span class="bar-value">${currency.format(amount)}</span>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderDonutChart() {
+    if (!categoryDonut || !donutLegend || !donutTotalLabel) return;
+
+    const expenseTotals = transactions
+        .filter((transaction) => transaction.type === "expense")
+        .reduce((groups, transaction) => {
+            groups[transaction.category] = (groups[transaction.category] || 0) + transaction.amount;
+            return groups;
+        }, {});
+    const rows = Object.entries(expenseTotals).sort((a, b) => b[1] - a[1]);
+    const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
+
+    donutTotalLabel.textContent = currency.format(total);
+
+    if (!rows.length || total <= 0) {
+        categoryDonut.style.background = "#e8eef7";
+        donutLegend.innerHTML = `<div class="empty-state compact-empty">Add expenses to build your category donut</div>`;
+        return;
+    }
+
+    let cursor = 0;
+    const slices = rows.map(([category, amount], index) => {
+        const start = cursor;
+        const size = (amount / total) * 100;
+        cursor += size;
+        const color = categoryColors[index % categoryColors.length];
+        return `${color} ${start}% ${cursor}%`;
+    });
+
+    categoryDonut.style.background = `conic-gradient(${slices.join(", ")})`;
+    donutLegend.innerHTML = rows.map(([category, amount], index) => {
+        const color = categoryColors[index % categoryColors.length];
+        const percent = Math.round((amount / total) * 100);
+        return `
+            <div class="donut-legend-row">
+                <span class="legend-color" style="background:${color}"></span>
+                <span>${escapeHtml(category)}</span>
+                <strong>${currency.format(amount)} · ${percent}%</strong>
             </div>
         `;
     }).join("");

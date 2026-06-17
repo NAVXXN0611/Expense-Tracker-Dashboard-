@@ -147,12 +147,21 @@
 
                 <section class="panel chart-panel">
                     <div class="panel-header">
-                        <h2>Category Spend</h2>
+                        <h2>Expense Categories</h2>
                         <select id="filterType" aria-label="Filter transactions">
                             <option value="all">All</option>
                             <option value="expense">Expenses</option>
                             <option value="income">Income</option>
                         </select>
+                    </div>
+                    <div class="donut-layout" aria-label="Expense category donut chart">
+                        <div class="donut-chart" id="categoryDonut">
+                            <div>
+                                <span id="donutTotalLabel">$0.00</span>
+                                <small>Total expenses</small>
+                            </div>
+                        </div>
+                        <div id="donutLegend" class="donut-legend"></div>
                     </div>
                     <div id="categoryChart" class="chart"></div>
                 </section>
