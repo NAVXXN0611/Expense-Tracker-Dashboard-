@@ -43,6 +43,7 @@ const recurringCount = document.querySelector("#recurringCount");
 const recurringDueDate = document.querySelector("#recurringDueDate");
 const recurringMessage = document.querySelector("#recurringMessage");
 const themeToggle = document.querySelector("#themeToggle");
+const currencySelector = document.querySelector("#currencySelector");
 const smartInsights = document.querySelector("#smartInsights");
 const financeTips = document.querySelector("#financeTips");
 const insightStatus = document.querySelector("#insightStatus");
@@ -58,10 +59,8 @@ const categoryColors = [
     "#f97316",
 ];
 
-const currency = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-});
+let selectedCurrency = localStorage.getItem("fintrack-currency") || "USD";
+let currency = createCurrencyFormatter(selectedCurrency);
 const maxReceiptSize = 650 * 1024;
 const allowedReceiptTypes = ["image/png", "image/jpeg", "image/webp"];
 
@@ -72,6 +71,7 @@ let selectedTrendMonth = getCurrentMonth();
 let currentFilteredTransactions = [];
 
 applySavedTheme();
+applySavedCurrency();
 dateInput.valueAsDate = new Date();
 if (recurringDueDate) {
     recurringDueDate.valueAsDate = new Date();
@@ -749,6 +749,12 @@ themeToggle?.addEventListener("click", () => {
     localStorage.setItem("fintrack-theme", isLight ? "light" : "dark");
     updateThemeToggle();
 });
+currencySelector?.addEventListener("change", () => {
+    selectedCurrency = currencySelector.value;
+    localStorage.setItem("fintrack-currency", selectedCurrency);
+    currency = createCurrencyFormatter(selectedCurrency);
+    render();
+});
 trendMonthPicker?.addEventListener("change", () => {
     selectedTrendMonth = trendMonthPicker.value || getCurrentMonth();
     renderTrendChart();
@@ -861,6 +867,18 @@ function formatCsvDate(value) {
 
 function formatCsvMoney(value) {
     return currency.format(Number(value) || 0);
+}
+
+function createCurrencyFormatter(code) {
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: code,
+    });
+}
+
+function applySavedCurrency() {
+    if (!currencySelector) return;
+    currencySelector.value = selectedCurrency;
 }
 
 function csvCell(value) {

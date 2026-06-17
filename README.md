@@ -39,6 +39,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 - Recurring expenses with one-click transaction posting
 - Receipt image upload for transactions
 - Bill-style CSV export with FinTrack header and printed timestamp
+- Dashboard currency selector for display formatting
 - Dark/light dashboard theme toggle
 - Advanced search and filters by date, category, type, and amount
 - Add income and expense transactions
