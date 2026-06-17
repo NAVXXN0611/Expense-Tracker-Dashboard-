@@ -29,6 +29,7 @@ PostgreSQL is a good next step when you need multiple users, hosting, backups, s
 |-- app.py
 |-- requirements.txt
 |-- run_dashboard.bat
+|-- vercel.json
 |-- expenses.db
 |-- static
 |   |-- script.js
@@ -130,3 +131,27 @@ If you want PostgreSQL later:
 5. Store the database URL in an environment variable such as `DATABASE_URL`.
 
 For now, SQLite is the recommended backend because it is faster to set up and easier to run locally.
+
+## Deploying on Vercel
+
+This project includes `vercel.json`, so Vercel can run the Flask app through the Python runtime.
+
+1. Push this repository to GitHub.
+2. Open [Vercel](https://vercel.com/).
+3. Choose **Add New Project**.
+4. Import the GitHub repository:
+
+```text
+NAVXXN0611/Expense-Tracker-Dashboard-
+```
+
+5. Keep the default project settings.
+6. Add this environment variable in Vercel:
+
+```text
+SECRET_KEY=replace-with-a-long-random-secret
+```
+
+7. Deploy.
+
+Important: SQLite is fine for local development, but Vercel serverless deployments do not provide a normal persistent local database file for production app data. For a real hosted version with lasting customer accounts and transactions, migrate the database layer to PostgreSQL, Neon, Supabase, or another hosted database.

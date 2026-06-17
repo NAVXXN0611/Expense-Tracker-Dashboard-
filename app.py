@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from functools import wraps
+import os
 from pathlib import Path
 import sqlite3
 
@@ -11,7 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "expenses.db"
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dev-secret-change-before-production"
+app.config["SECRET_KEY"] = os.environ.get(
+    "SECRET_KEY", "dev-secret-change-before-production"
+)
 
 
 def get_db():
