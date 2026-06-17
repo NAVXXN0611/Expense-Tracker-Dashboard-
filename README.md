@@ -1,6 +1,6 @@
 # Expensive.io
 
-A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, and Flask.
+A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, and SQLite.
 
 ## Backend Suggestion
 
@@ -10,8 +10,10 @@ PostgreSQL is a good next step when you need multiple users, hosting, backups, s
 
 ## Features
 
+- Public intro website for Expensive.io
 - Customer register/login page
 - Protected internal dashboard after login
+- User-specific transaction records
 - Add income and expense transactions
 - Delete transactions
 - Search transactions
@@ -24,14 +26,19 @@ PostgreSQL is a good next step when you need multiple users, hosting, backups, s
 
 ```text
 .
-├── app.py
-├── requirements.txt
-├── expenses.db
-├── static
-│   ├── script.js
-│   └── styles.css
-└── templates
-    └── index.html
+|-- app.py
+|-- requirements.txt
+|-- run_dashboard.bat
+|-- expenses.db
+|-- static
+|   |-- script.js
+|   `-- styles.css
+`-- templates
+    |-- auth.html
+    |-- dashboard.html
+    |-- index.html
+    |-- login.html
+    `-- register.html
 ```
 
 `expenses.db` is created automatically when the app starts.
@@ -62,7 +69,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-5. Open the dashboard:
+5. Open the website:
 
 ```text
 http://127.0.0.1:5055
@@ -81,6 +88,8 @@ http://127.0.0.1:5055/dashboard
 ```
 
 ## API Endpoints
+
+The transaction API requires a logged-in customer session.
 
 ### Get transactions
 
