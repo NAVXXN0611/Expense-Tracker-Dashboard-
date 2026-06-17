@@ -18,7 +18,7 @@ A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, 
 - README File: `README.md`
 - Documentation: setup instructions, PostgreSQL configuration, API endpoints, and Vercel deployment steps
 - Screenshots / Output Images: project output images and visual assets are included in the repository where applicable, including `static/fintrack-graph.png`
-
+- Deployed website link : https://expense-tracker-dashboard-7nstv2bva-naveen-kumar-rv-s-projects.vercel.app/
 ## Backend
 
 For production hosting, this project uses **PostgreSQL** through the `DATABASE_URL` environment variable. PostgreSQL is the right choice for customer accounts, persistent transactions, hosted backups, and real multi-user use.
