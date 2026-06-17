@@ -24,10 +24,27 @@
 
     <main>
         <section id="dashboard" class="app-section internal-app-section">
-            <div class="section-heading light">
-                <p>Internal dashboard</p>
-                <h2>Your money, organized in real time.</h2>
-            </div>
+            <section class="welcome-panel" aria-label="Dashboard welcome summary">
+                <div class="welcome-copy">
+                    <p id="welcomeDate">Today</p>
+                    <h1>Welcome back, {{ user_name }}.</h1>
+                    <span id="welcomeMessage">Your financial snapshot is loading.</span>
+                </div>
+                <div class="welcome-stats">
+                    <article>
+                        <span>Cash Flow</span>
+                        <strong id="cashFlowStatus">Loading</strong>
+                    </article>
+                    <article>
+                        <span>Top Category</span>
+                        <strong id="topCategoryValue">None yet</strong>
+                    </article>
+                    <article>
+                        <span>Latest Activity</span>
+                        <strong id="latestActivityValue">No activity</strong>
+                    </article>
+                </div>
+            </section>
 
             <section class="summary-grid" aria-label="Summary">
                 <article class="summary-card">

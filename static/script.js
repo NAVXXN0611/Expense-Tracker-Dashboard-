@@ -5,6 +5,11 @@ const filterType = document.querySelector("#filterType");
 const searchInput = document.querySelector("#searchInput");
 const formMessage = document.querySelector("#formMessage");
 const dateInput = document.querySelector("#transactionDate");
+const welcomeDate = document.querySelector("#welcomeDate");
+const welcomeMessage = document.querySelector("#welcomeMessage");
+const cashFlowStatus = document.querySelector("#cashFlowStatus");
+const topCategoryValue = document.querySelector("#topCategoryValue");
+const latestActivityValue = document.querySelector("#latestActivityValue");
 
 const currency = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -14,6 +19,7 @@ const currency = new Intl.NumberFormat("en-US", {
 let transactions = [];
 
 dateInput.valueAsDate = new Date();
+renderWelcomeDate();
 
 async function loadTransactions() {
     const response = await fetch("/api/transactions");
@@ -31,6 +37,7 @@ function render() {
     });
 
     renderSummary();
+    renderWelcomeSummary();
     renderTable(filtered);
     renderChart(filtered);
 }
@@ -47,6 +54,69 @@ function renderSummary() {
     document.querySelector("#expenseValue").textContent = currency.format(expense);
     document.querySelector("#balanceValue").textContent = currency.format(income - expense);
     document.querySelector("#countValue").textContent = transactions.length;
+}
+
+function renderWelcomeDate() {
+    if (!welcomeDate) return;
+
+    welcomeDate.textContent = new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function renderWelcomeSummary() {
+    if (!welcomeMessage || !cashFlowStatus || !topCategoryValue || !latestActivityValue) {
+        return;
+    }
+
+    const income = transactions
+        .filter((transaction) => transaction.type === "income")
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+    const expense = transactions
+        .filter((transaction) => transaction.type === "expense")
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+    const balance = income - expense;
+
+    if (!transactions.length) {
+        welcomeMessage.textContent = "Add your first transaction to unlock a personalized financial snapshot.";
+        cashFlowStatus.textContent = "Getting started";
+        topCategoryValue.textContent = "None yet";
+        latestActivityValue.textContent = "No activity";
+        return;
+    }
+
+    if (balance > 0) {
+        welcomeMessage.textContent = `You are ahead by ${currency.format(balance)}. Keep the positive cash flow moving.`;
+        cashFlowStatus.textContent = "Positive";
+    } else if (balance < 0) {
+        welcomeMessage.textContent = `You are over by ${currency.format(Math.abs(balance))}. Review your highest categories today.`;
+        cashFlowStatus.textContent = "Needs review";
+    } else {
+        welcomeMessage.textContent = "Income and expenses are balanced. A little extra buffer would strengthen your month.";
+        cashFlowStatus.textContent = "Balanced";
+    }
+
+    const categoryTotals = transactions
+        .filter((transaction) => transaction.type === "expense")
+        .reduce((totals, transaction) => {
+            totals[transaction.category] = (totals[transaction.category] || 0) + transaction.amount;
+            return totals;
+        }, {});
+    const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+    topCategoryValue.textContent = topCategory
+        ? `${topCategory[0]} (${currency.format(topCategory[1])})`
+        : "No expenses";
+
+    const latest = [...transactions].sort((a, b) => {
+        if (a.transaction_date === b.transaction_date) return b.id - a.id;
+        return b.transaction_date.localeCompare(a.transaction_date);
+    })[0];
+    latestActivityValue.textContent = latest
+        ? `${latest.title} ${currency.format(latest.amount)}`
+        : "No activity";
 }
 
 function renderTable(items) {
