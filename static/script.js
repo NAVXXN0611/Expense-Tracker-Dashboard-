@@ -22,6 +22,8 @@ const budgetFill = document.querySelector("#budgetFill");
 const categoryDonut = document.querySelector("#categoryDonut");
 const donutLegend = document.querySelector("#donutLegend");
 const donutTotalLabel = document.querySelector("#donutTotalLabel");
+const trendChart = document.querySelector("#trendChart");
+const trendRangeLabel = document.querySelector("#trendRangeLabel");
 
 const categoryColors = [
     "#0b63ff",
@@ -71,6 +73,7 @@ function render() {
     renderTable(filtered);
     renderChart(filtered);
     renderDonutChart();
+    renderTrendChart();
 }
 
 function renderSummary() {
@@ -274,6 +277,42 @@ function renderDonutChart() {
     }).join("");
 }
 
+function renderTrendChart() {
+    if (!trendChart || !trendRangeLabel) return;
+
+    const months = getRecentMonths(6);
+    const monthlyTotals = months.map((month) => {
+        const label = formatShortMonthLabel(month);
+        const income = transactions
+            .filter((transaction) => transaction.type === "income" && transaction.transaction_date.startsWith(month))
+            .reduce((sum, transaction) => sum + transaction.amount, 0);
+        const expense = transactions
+            .filter((transaction) => transaction.type === "expense" && transaction.transaction_date.startsWith(month))
+            .reduce((sum, transaction) => sum + transaction.amount, 0);
+        return { month, label, income, expense };
+    });
+
+    const max = Math.max(
+        1,
+        ...monthlyTotals.flatMap((item) => [item.income, item.expense]),
+    );
+
+    trendRangeLabel.textContent = `${monthlyTotals[0].label} - ${monthlyTotals[monthlyTotals.length - 1].label}`;
+    trendChart.innerHTML = monthlyTotals.map((item) => {
+        const incomeHeight = Math.max((item.income / max) * 100, item.income > 0 ? 6 : 0);
+        const expenseHeight = Math.max((item.expense / max) * 100, item.expense > 0 ? 6 : 0);
+        return `
+            <div class="trend-month">
+                <div class="trend-bars">
+                    <span class="trend-bar income-bar" style="height:${incomeHeight}%" title="Income ${currency.format(item.income)}"></span>
+                    <span class="trend-bar expense-bar" style="height:${expenseHeight}%" title="Expenses ${currency.format(item.expense)}"></span>
+                </div>
+                <strong>${item.label}</strong>
+            </div>
+        `;
+    }).join("");
+}
+
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formMessage.textContent = "";
@@ -356,6 +395,25 @@ function formatMonthLabel(value) {
         month: "long",
         year: "numeric",
     });
+}
+
+function formatShortMonthLabel(value) {
+    return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+    });
+}
+
+function getRecentMonths(count) {
+    const months = [];
+    const date = new Date();
+    date.setDate(1);
+
+    for (let index = count - 1; index >= 0; index -= 1) {
+        const item = new Date(date.getFullYear(), date.getMonth() - index, 1);
+        months.push(item.toISOString().slice(0, 7));
+    }
+
+    return months;
 }
 
 function escapeHtml(value) {

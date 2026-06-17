@@ -652,6 +652,96 @@ h1 {
     margin-bottom: 18px;
 }
 
+.trend-panel {
+    margin-bottom: 18px;
+}
+
+.trend-panel .panel-header span {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 900;
+}
+
+.trend-chart {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(70px, 1fr));
+    gap: 18px;
+    min-height: 260px;
+    align-items: end;
+    padding: 24px 8px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background:
+        linear-gradient(to top, rgba(219, 227, 239, 0.65) 1px, transparent 1px) 0 0 / 100% 25%,
+        var(--off-white);
+}
+
+.trend-month {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    align-items: end;
+}
+
+.trend-bars {
+    display: flex;
+    height: 190px;
+    gap: 8px;
+    align-items: end;
+    justify-content: center;
+}
+
+.trend-bar {
+    width: 26px;
+    min-height: 0;
+    border-radius: 8px 8px 2px 2px;
+    transition: height 0.25s ease;
+}
+
+.income-bar {
+    background: linear-gradient(180deg, #22c55e, #0f9f6e);
+}
+
+.expense-bar {
+    background: linear-gradient(180deg, #60a5fa, var(--blue));
+}
+
+.trend-month strong {
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-align: center;
+}
+
+.trend-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.trend-legend span {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.trend-legend i {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+
+.legend-income {
+    background: #0f9f6e;
+}
+
+.legend-expense {
+    background: var(--blue);
+}
+
 .summary-card {
     padding: 24px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
@@ -1136,7 +1226,8 @@ th {
     }
 
     .feature-grid,
-    .summary-grid {
+    .summary-grid,
+    .trend-chart {
         grid-template-columns: repeat(2, 1fr);
     }
 }
@@ -1203,6 +1294,7 @@ th {
 
     .feature-grid,
     .summary-grid,
+    .trend-chart,
     .form-row,
     .bar-row,
     .donut-legend-row {

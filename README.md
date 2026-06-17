@@ -16,6 +16,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 - User-specific transaction records
 - Monthly budget goals
 - Expense category donut chart
+- Income vs expense trend graph
 - Add income and expense transactions
 - Delete transactions
 - Search transactions
