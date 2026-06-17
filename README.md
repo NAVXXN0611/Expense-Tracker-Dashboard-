@@ -1,12 +1,12 @@
 # Expensive.io
 
-A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, and SQLite.
+A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, and PostgreSQL.
 
-## Backend Suggestion
+## Backend
 
-For this project, **Flask + SQLite** is the easiest backend choice. SQLite stores data in a local `expenses.db` file, needs no separate database server, and is perfect for learning or small personal dashboards.
+For production hosting, this project uses **PostgreSQL** through the `DATABASE_URL` environment variable. PostgreSQL is the right choice for customer accounts, persistent transactions, hosted backups, and real multi-user use.
 
-PostgreSQL is a good next step when you need multiple users, hosting, backups, stronger concurrency, or production database tooling. The app is structured so it can be migrated later, but SQLite keeps setup simple today.
+For local development, the app automatically falls back to SQLite when `DATABASE_URL` is not set. That keeps local setup easy while keeping the hosted version production-ready.
 
 ## Features
 
@@ -42,7 +42,7 @@ PostgreSQL is a good next step when you need multiple users, hosting, backups, s
     `-- register.html
 ```
 
-`expenses.db` is created automatically when the app starts.
+`expenses.db` is created automatically only for local development when `DATABASE_URL` is not set.
 
 ## Setup
 
@@ -64,7 +64,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-4. Run the app:
+4. Run the app locally with SQLite fallback:
 
 ```bash
 python app.py
@@ -87,6 +87,27 @@ Internal dashboard after login:
 ```text
 http://127.0.0.1:5055/dashboard
 ```
+
+## PostgreSQL Setup
+
+For production, create a hosted PostgreSQL database with a provider such as Neon, Supabase, Railway, Render, or Vercel Marketplace integrations.
+
+After creating the database, copy its PostgreSQL connection string. It usually looks like this:
+
+```text
+postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
+```
+
+Set it as an environment variable:
+
+```text
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
+```
+
+The app creates these tables automatically on startup:
+
+- `users`
+- `expenses`
 
 ## API Endpoints
 
@@ -120,18 +141,6 @@ Content-Type: application/json
 DELETE /api/transactions/1
 ```
 
-## PostgreSQL Upgrade Path
-
-If you want PostgreSQL later:
-
-1. Install PostgreSQL.
-2. Install a Python PostgreSQL driver such as `psycopg2-binary`.
-3. Replace the SQLite connection in `app.py` with a PostgreSQL connection.
-4. Change SQL placeholders from `?` to `%s`.
-5. Store the database URL in an environment variable such as `DATABASE_URL`.
-
-For now, SQLite is the recommended backend because it is faster to set up and easier to run locally.
-
 ## Deploying on Vercel
 
 This project includes `vercel.json`, so Vercel can run the Flask app through the Python runtime.
@@ -146,12 +155,13 @@ NAVXXN0611/Expense-Tracker-Dashboard-
 ```
 
 5. Keep the default project settings.
-6. Add this environment variable in Vercel:
+6. Add these environment variables in Vercel:
 
 ```text
 SECRET_KEY=replace-with-a-long-random-secret
+DATABASE_URL=your-hosted-postgresql-connection-string
 ```
 
 7. Deploy.
 
-Important: SQLite is fine for local development, but Vercel serverless deployments do not provide a normal persistent local database file for production app data. For a real hosted version with lasting customer accounts and transactions, migrate the database layer to PostgreSQL, Neon, Supabase, or another hosted database.
+Important: Do not use SQLite for the Vercel production database. Use the hosted PostgreSQL `DATABASE_URL` so customer accounts and transactions persist correctly.
