@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ "Register" if mode == "register" else "Login" }} | Expensive.io</title>
+    <title>{{ "Register" if mode == "register" else "Login" }} | FinTrack</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body class="auth-body">
     <main class="auth-shell single-auth-shell">
         <section class="auth-intro">
-            <a class="brand auth-brand" href="{{ url_for('index') }}" aria-label="Expensive.io home">
-                <span class="brand-mark">E</span>
-                <span>Expensive.io</span>
+            <a class="brand auth-brand" href="{{ url_for('index') }}" aria-label="FinTrack home">
+                <span class="brand-mark">F</span>
+                <span>FinTrack</span>
             </a>
 
             {% if mode == "register" %}
@@ -29,7 +29,7 @@
                 <p class="award-pill">Welcome back</p>
                 <h1>Return to your internal dashboard.</h1>
                 <p class="hero-copy">
-                    Log in to continue tracking transactions, reviewing spending trends, and keeping your money organized in Expensive.io.
+                    Log in to continue tracking transactions, reviewing spending trends, and keeping your money organized in FinTrack.
                 </p>
                 <div class="auth-points">
                     <span>Protected dashboard</span>
@@ -44,11 +44,11 @@
                 {% if mode == "register" %}
                     <p class="form-kicker">New customer</p>
                     <h2>Create your account</h2>
-                    <p>Use this area to create a new Expensive.io customer profile.</p>
+                    <p>Use this area to create a new FinTrack customer profile.</p>
                 {% else %}
                     <p class="form-kicker">Existing customer</p>
                     <h2>Login to dashboard</h2>
-                    <p>Use this area to access your existing Expensive.io dashboard.</p>
+                    <p>Use this area to access your existing FinTrack dashboard.</p>
                 {% endif %}
             </div>
 

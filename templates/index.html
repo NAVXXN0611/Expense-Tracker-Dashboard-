@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expensive.io</title>
+    <title>FinTrack</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header class="site-header">
-        <a class="brand" href="#top" aria-label="Expensive.io home">
-            <span class="brand-mark">E</span>
-            <span>Expensive.io</span>
+        <a class="brand" href="#top" aria-label="FinTrack home">
+            <span class="brand-mark">F</span>
+            <span>FinTrack</span>
         </a>
-        <nav class="nav-links" aria-label="Primary navigation">
-            <a href="#features">Features</a>
-            <a href="#preview">Preview</a>
-            <a href="{{ url_for('login') }}">Customer Access</a>
-        </nav>
         <div class="header-actions">
             <a class="header-action ghost" href="{{ url_for('login') }}">Login</a>
             <a class="header-action" href="{{ url_for('register') }}">Register</a>
@@ -32,22 +27,12 @@
                     Capture spending, review categories, and understand your balance with a fast dashboard built for everyday money decisions.
                 </p>
 
-                <div class="hero-actions" aria-label="Get started">
-                    <input type="email" placeholder="Enter your email" aria-label="Email address">
-                    <a href="{{ url_for('register') }}">Start tracking</a>
-                </div>
-
-                <div class="choice-panel" aria-label="Expense tracking options">
-                    <p>I want to:</p>
-                    <div class="choice-grid">
-                        <a href="{{ url_for('register') }}">Create a customer account</a>
-                        <a href="{{ url_for('login') }}">Login to my dashboard</a>
-                        <a href="#features">Explore features</a>
-                    </div>
+                <div class="hero-graph-card" aria-label="FinTrack analytics graph preview">
+                    <img src="{{ url_for('static', filename='fintrack-graph.png') }}" alt="Financial analytics graph preview">
                 </div>
             </div>
 
-            <div id="preview" class="hero-visual" aria-label="Expensive.io dashboard preview">
+            <div id="preview" class="hero-visual" aria-label="FinTrack dashboard preview">
                 <div class="phone-card">
                     <div class="phone-top">
                         <span></span>
@@ -84,7 +69,7 @@
                         <span>Meals</span>
                         <strong>$345</strong>
                     </div>
-                    <a class="preview-link" href="{{ url_for('login') }}">Unlock your dashboard</a>
+                    <a class="preview-link" href="{{ url_for('login') }}">Open your dashboard</a>
                 </div>
             </div>
         </section>

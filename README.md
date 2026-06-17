@@ -1,4 +1,4 @@
-# Expensive.io
+# FinTrack
 
 A full-stack expense dashboard built with HTML, CSS, JavaScript, Python, Flask, and PostgreSQL.
 
@@ -10,7 +10,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 
 ## Features
 
-- Public intro website for Expensive.io
+- Public intro website for FinTrack
 - Customer register/login page
 - Protected internal dashboard after login
 - User-specific transaction records
@@ -32,6 +32,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 |-- vercel.json
 |-- expenses.db
 |-- static
+|   |-- fintrack-graph.png
 |   |-- script.js
 |   `-- styles.css
 `-- templates
