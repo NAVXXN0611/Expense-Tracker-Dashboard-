@@ -1053,6 +1053,17 @@ button:hover,
     font-size: 0.9rem;
 }
 
+.receipt-upload input {
+    padding: 10px;
+}
+
+.receipt-upload span,
+.muted-cell {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
 .chart {
     display: grid;
     gap: 14px;
@@ -1220,6 +1231,20 @@ th {
 
 .delete-btn:hover {
     background: rgba(239, 68, 68, 0.08);
+}
+
+.receipt-btn {
+    width: auto;
+    min-height: 34px;
+    padding: 0 12px;
+    border-color: rgba(11, 99, 255, 0.22);
+    background: rgba(11, 99, 255, 0.1);
+    color: var(--blue);
+}
+
+.receipt-btn:hover {
+    background: var(--blue);
+    color: var(--white);
 }
 
 .empty-state {

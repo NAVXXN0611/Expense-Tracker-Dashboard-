@@ -19,6 +19,7 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 - Income vs expense trend graph with month selector
 - Recent activity timeline
 - Recurring expenses with one-click transaction posting
+- Receipt image upload for transactions
 - Add income and expense transactions
 - Delete transactions
 - Search transactions
@@ -151,9 +152,16 @@ Content-Type: application/json
   "amount": 45.5,
   "type": "expense",
   "transaction_date": "2026-06-17",
-  "note": "Weekly shopping"
+  "note": "Weekly shopping",
+  "receipt": {
+    "name": "receipt.png",
+    "type": "image/png",
+    "data": "data:image/png;base64,..."
+  }
 }
 ```
+
+Receipt upload is optional. Supported formats are PNG, JPEG, and WebP under 650 KB.
 
 ### Delete transaction
 

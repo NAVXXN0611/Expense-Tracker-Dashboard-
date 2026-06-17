@@ -24,6 +24,12 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = IS_VERCEL
 DB_READY = False
 DB_ERROR = ""
+MAX_RECEIPT_DATA_LENGTH = 900_000
+ALLOWED_RECEIPT_PREFIXES = (
+    "data:image/png;base64,",
+    "data:image/jpeg;base64,",
+    "data:image/webp;base64,",
+)
 
 
 def postgres_url():
@@ -88,10 +94,16 @@ def init_db():
                         type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
                         transaction_date TEXT NOT NULL,
                         note TEXT DEFAULT '',
+                        receipt_name TEXT DEFAULT '',
+                        receipt_type TEXT DEFAULT '',
+                        receipt_data TEXT DEFAULT '',
                         created_at TEXT NOT NULL
                     )
                     """
                 )
+                cursor.execute("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_name TEXT DEFAULT ''")
+                cursor.execute("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_type TEXT DEFAULT ''")
+                cursor.execute("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_data TEXT DEFAULT ''")
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS budget_goals (
@@ -149,6 +161,9 @@ def init_db():
                 type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
                 transaction_date TEXT NOT NULL,
                 note TEXT DEFAULT '',
+                receipt_name TEXT DEFAULT '',
+                receipt_type TEXT DEFAULT '',
+                receipt_data TEXT DEFAULT '',
                 created_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
@@ -189,6 +204,12 @@ def init_db():
         }
         if "user_id" not in columns:
             conn.execute("ALTER TABLE expenses ADD COLUMN user_id INTEGER")
+        if "receipt_name" not in columns:
+            conn.execute("ALTER TABLE expenses ADD COLUMN receipt_name TEXT DEFAULT ''")
+        if "receipt_type" not in columns:
+            conn.execute("ALTER TABLE expenses ADD COLUMN receipt_type TEXT DEFAULT ''")
+        if "receipt_data" not in columns:
+            conn.execute("ALTER TABLE expenses ADD COLUMN receipt_data TEXT DEFAULT ''")
         conn.commit()
     finally:
         conn.close()
@@ -266,6 +287,9 @@ def row_to_dict(row):
         "type": row["type"],
         "transaction_date": row["transaction_date"],
         "note": row["note"],
+        "receipt_name": row["receipt_name"] or "",
+        "receipt_type": row["receipt_type"] or "",
+        "receipt_data": row["receipt_data"] or "",
         "created_at": row["created_at"],
     }
 
@@ -313,6 +337,25 @@ def next_recurring_date(value, frequency):
         year += 1
     last_day = calendar.monthrange(year, month)[1]
     return due_date.replace(year=year, month=month, day=min(due_date.day, last_day)).isoformat()
+
+
+def parse_receipt(payload):
+    receipt = payload.get("receipt") or {}
+    if not isinstance(receipt, dict):
+        raise ValueError("Receipt must be an image upload object")
+    data = receipt.get("data", "").strip()
+    if not data:
+        return "", "", ""
+
+    file_type = receipt.get("type", "").strip()
+    if file_type not in {"image/png", "image/jpeg", "image/webp"}:
+        raise ValueError("Receipt must be a PNG, JPEG, or WebP image")
+    if not data.startswith(ALLOWED_RECEIPT_PREFIXES):
+        raise ValueError("Receipt image data is invalid")
+    if len(data) > MAX_RECEIPT_DATA_LENGTH:
+        raise ValueError("Receipt image must be smaller than 650 KB")
+
+    return receipt.get("name", "receipt").strip()[:120], file_type, data
 
 
 @app.route("/")
@@ -770,12 +813,17 @@ def create_transaction():
     except ValueError:
         return jsonify({"error": "Date must use YYYY-MM-DD format"}), 400
 
+    try:
+        receipt_name, receipt_type, receipt_data = parse_receipt(payload)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+
     if USE_POSTGRES:
         row = db_execute(
             """
             INSERT INTO expenses
-                (user_id, title, category, amount, type, transaction_date, note, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (user_id, title, category, amount, type, transaction_date, note, receipt_name, receipt_type, receipt_data, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
             """,
             (
@@ -786,6 +834,9 @@ def create_transaction():
                 payload["type"],
                 payload["transaction_date"],
                 payload.get("note", "").strip(),
+                receipt_name,
+                receipt_type,
+                receipt_data,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
             ),
             fetchone=True,
@@ -796,8 +847,8 @@ def create_transaction():
             cursor = conn.execute(
                 """
                 INSERT INTO expenses
-                    (user_id, title, category, amount, type, transaction_date, note, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (user_id, title, category, amount, type, transaction_date, note, receipt_name, receipt_type, receipt_data, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     session["user_id"],
@@ -807,6 +858,9 @@ def create_transaction():
                     payload["type"],
                     payload["transaction_date"],
                     payload.get("note", "").strip(),
+                    receipt_name,
+                    receipt_type,
+                    receipt_data,
                     datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 ),
             )

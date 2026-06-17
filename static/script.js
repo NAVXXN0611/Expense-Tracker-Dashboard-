@@ -5,6 +5,8 @@ const filterType = document.querySelector("#filterType");
 const searchInput = document.querySelector("#searchInput");
 const formMessage = document.querySelector("#formMessage");
 const dateInput = document.querySelector("#transactionDate");
+const receiptFile = document.querySelector("#receiptFile");
+const receiptFileName = document.querySelector("#receiptFileName");
 const welcomeDate = document.querySelector("#welcomeDate");
 const welcomeMessage = document.querySelector("#welcomeMessage");
 const cashFlowStatus = document.querySelector("#cashFlowStatus");
@@ -48,6 +50,8 @@ const currency = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
 });
+const maxReceiptSize = 650 * 1024;
+const allowedReceiptTypes = ["image/png", "image/jpeg", "image/webp"];
 
 let transactions = [];
 let budget = { month: getCurrentMonth(), amount: 0 };
@@ -214,7 +218,7 @@ function renderBudget() {
 
 function renderTable(items) {
     if (!items.length) {
-        table.innerHTML = `<tr><td colspan="6" class="empty-state">No transactions found</td></tr>`;
+        table.innerHTML = `<tr><td colspan="7" class="empty-state">No transactions found</td></tr>`;
         return;
     }
 
@@ -225,6 +229,7 @@ function renderTable(items) {
             <td><span class="pill ${transaction.type}">${transaction.type}</span></td>
             <td>${currency.format(transaction.amount)}</td>
             <td>${formatDate(transaction.transaction_date)}</td>
+            <td>${transaction.receipt_data ? `<button type="button" class="receipt-btn" data-id="${transaction.id}">View</button>` : `<span class="muted-cell">None</span>`}</td>
             <td><button class="delete-btn" data-id="${transaction.id}">Delete</button></td>
         </tr>
     `).join("");
@@ -407,6 +412,14 @@ form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formMessage.textContent = "";
 
+    let receipt = null;
+    try {
+        receipt = await readReceiptFile();
+    } catch (error) {
+        formMessage.textContent = error.message;
+        return;
+    }
+
     const payload = {
         title: document.querySelector("#title").value,
         amount: document.querySelector("#amount").value,
@@ -414,6 +427,7 @@ form.addEventListener("submit", async (event) => {
         category: document.querySelector("#category").value,
         transaction_date: dateInput.value,
         note: document.querySelector("#note").value,
+        receipt,
     };
 
     const response = await fetch("/api/transactions", {
@@ -430,6 +444,7 @@ form.addEventListener("submit", async (event) => {
 
     form.reset();
     dateInput.valueAsDate = new Date();
+    receiptFileName.textContent = "Optional PNG, JPEG, or WebP under 650 KB";
     await loadTransactions();
 });
 
@@ -512,11 +527,25 @@ recurringList?.addEventListener("click", async (event) => {
 });
 
 table.addEventListener("click", async (event) => {
+    const receiptButton = event.target.closest(".receipt-btn");
+    if (receiptButton) {
+        const transaction = transactions.find((item) => String(item.id) === receiptButton.dataset.id);
+        if (transaction?.receipt_data) {
+            window.open(transaction.receipt_data, "_blank", "noopener");
+        }
+        return;
+    }
+
     const button = event.target.closest(".delete-btn");
     if (!button) return;
 
     await fetch(`/api/transactions/${button.dataset.id}`, { method: "DELETE" });
     await loadTransactions();
+});
+
+receiptFile?.addEventListener("change", () => {
+    const file = receiptFile.files[0];
+    receiptFileName.textContent = file ? `${file.name} selected` : "Optional PNG, JPEG, or WebP under 650 KB";
 });
 
 filterType.addEventListener("change", render);
@@ -555,6 +584,37 @@ function formatRangeMonthLabel(value) {
     return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-US", {
         month: "short",
         year: "numeric",
+    });
+}
+
+function readReceiptFile() {
+    return new Promise((resolve, reject) => {
+        const file = receiptFile?.files[0];
+        if (!file) {
+            resolve(null);
+            return;
+        }
+
+        if (!allowedReceiptTypes.includes(file.type)) {
+            reject(new Error("Receipt must be a PNG, JPEG, or WebP image"));
+            return;
+        }
+
+        if (file.size > maxReceiptSize) {
+            reject(new Error("Receipt image must be smaller than 650 KB"));
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+            resolve({
+                name: file.name,
+                type: file.type,
+                data: reader.result,
+            });
+        });
+        reader.addEventListener("error", () => reject(new Error("Could not read receipt image")));
+        reader.readAsDataURL(file);
     });
 }
 

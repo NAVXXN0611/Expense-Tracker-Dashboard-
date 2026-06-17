@@ -217,6 +217,12 @@
                         <textarea id="note" rows="3" placeholder="Optional details"></textarea>
                     </label>
 
+                    <label class="receipt-upload">
+                        Receipt image
+                        <input type="file" id="receiptFile" accept="image/png,image/jpeg,image/webp">
+                        <span id="receiptFileName">Optional PNG, JPEG, or WebP under 650 KB</span>
+                    </label>
+
                     <p id="formMessage" class="form-message" role="status"></p>
                     <button type="submit">Add Transaction</button>
                 </form>
@@ -259,6 +265,7 @@
                                 <th>Type</th>
                                 <th>Amount</th>
                                 <th>Date</th>
+                                <th>Receipt</th>
                                 <th></th>
                             </tr>
                         </thead>
