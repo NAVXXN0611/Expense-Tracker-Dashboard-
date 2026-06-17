@@ -17,6 +17,7 @@
             <a href="#transactions">Transactions</a>
         </nav>
         <div class="header-actions">
+            <button type="button" id="themeToggle" class="theme-toggle" aria-label="Switch dashboard theme">Light mode</button>
             <span class="customer-chip">{{ user_name }}</span>
             <a class="header-action ghost" href="{{ url_for('logout') }}">Logout</a>
         </div>
@@ -88,6 +89,23 @@
                 <article class="summary-card">
                     <span>Transactions</span>
                     <strong id="countValue">0</strong>
+                </article>
+            </section>
+
+            <section class="insight-grid" aria-label="Smart finance insights">
+                <article class="panel insight-panel">
+                    <div class="panel-header">
+                        <h2>Smart Spending Insights</h2>
+                        <span id="insightStatus">Live analysis</span>
+                    </div>
+                    <div id="smartInsights" class="insight-list"></div>
+                </article>
+                <article class="panel tip-panel">
+                    <div class="panel-header">
+                        <h2>Finance Tips</h2>
+                        <span>Personalized</span>
+                    </div>
+                    <div id="financeTips" class="tip-list"></div>
                 </article>
             </section>
 
@@ -230,11 +248,7 @@
                 <section class="panel chart-panel">
                     <div class="panel-header">
                         <h2>Expense Categories</h2>
-                        <select id="filterType" aria-label="Filter transactions">
-                            <option value="all">All</option>
-                            <option value="expense">Expenses</option>
-                            <option value="income">Income</option>
-                        </select>
+                        <span id="chartFilterLabel">Filtered view</span>
                     </div>
                     <div class="donut-layout" aria-label="Expense category donut chart">
                         <div class="donut-chart" id="categoryDonut">
@@ -254,7 +268,31 @@
             <section class="panel table-panel">
                 <div class="panel-header">
                     <h2>Recent Transactions</h2>
+                    <button type="button" id="exportCsvBtn" class="secondary-btn">Export CSV</button>
+                </div>
+                <div class="filter-panel" aria-label="Advanced transaction filters">
                     <input type="search" id="searchInput" placeholder="Search transactions">
+                    <select id="filterType" aria-label="Filter transactions by type">
+                        <option value="all">All types</option>
+                        <option value="expense">Expenses</option>
+                        <option value="income">Income</option>
+                    </select>
+                    <select id="filterCategory" aria-label="Filter transactions by category">
+                        <option value="all">All categories</option>
+                        <option>Food</option>
+                        <option>Transport</option>
+                        <option>Housing</option>
+                        <option>Utilities</option>
+                        <option>Healthcare</option>
+                        <option>Entertainment</option>
+                        <option>Salary</option>
+                        <option>Other</option>
+                    </select>
+                    <input type="date" id="filterDateFrom" aria-label="Filter from date">
+                    <input type="date" id="filterDateTo" aria-label="Filter to date">
+                    <input type="number" id="filterMinAmount" min="0" step="0.01" placeholder="Min amount" aria-label="Minimum amount">
+                    <input type="number" id="filterMaxAmount" min="0" step="0.01" placeholder="Max amount" aria-label="Maximum amount">
+                    <button type="button" id="clearFiltersBtn" class="secondary-btn">Clear</button>
                 </div>
                 <div class="table-wrap">
                     <table>

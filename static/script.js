@@ -2,6 +2,14 @@ const form = document.querySelector("#transactionForm");
 const table = document.querySelector("#transactionTable");
 const chart = document.querySelector("#categoryChart");
 const filterType = document.querySelector("#filterType");
+const filterCategory = document.querySelector("#filterCategory");
+const filterDateFrom = document.querySelector("#filterDateFrom");
+const filterDateTo = document.querySelector("#filterDateTo");
+const filterMinAmount = document.querySelector("#filterMinAmount");
+const filterMaxAmount = document.querySelector("#filterMaxAmount");
+const clearFiltersBtn = document.querySelector("#clearFiltersBtn");
+const exportCsvBtn = document.querySelector("#exportCsvBtn");
+const chartFilterLabel = document.querySelector("#chartFilterLabel");
 const searchInput = document.querySelector("#searchInput");
 const formMessage = document.querySelector("#formMessage");
 const dateInput = document.querySelector("#transactionDate");
@@ -34,6 +42,10 @@ const recurringList = document.querySelector("#recurringList");
 const recurringCount = document.querySelector("#recurringCount");
 const recurringDueDate = document.querySelector("#recurringDueDate");
 const recurringMessage = document.querySelector("#recurringMessage");
+const themeToggle = document.querySelector("#themeToggle");
+const smartInsights = document.querySelector("#smartInsights");
+const financeTips = document.querySelector("#financeTips");
+const insightStatus = document.querySelector("#insightStatus");
 
 const categoryColors = [
     "#0b63ff",
@@ -57,7 +69,9 @@ let transactions = [];
 let budget = { month: getCurrentMonth(), amount: 0 };
 let recurringItems = [];
 let selectedTrendMonth = getCurrentMonth();
+let currentFilteredTransactions = [];
 
+applySavedTheme();
 dateInput.valueAsDate = new Date();
 if (recurringDueDate) {
     recurringDueDate.valueAsDate = new Date();
@@ -82,13 +96,8 @@ async function loadTransactions() {
 }
 
 function render() {
-    const query = searchInput.value.trim().toLowerCase();
-    const selectedType = filterType.value;
-    const filtered = transactions.filter((transaction) => {
-        const matchesType = selectedType === "all" || transaction.type === selectedType;
-        const searchable = `${transaction.title} ${transaction.category} ${transaction.note}`.toLowerCase();
-        return matchesType && searchable.includes(query);
-    });
+    const filtered = getFilteredTransactions();
+    currentFilteredTransactions = filtered;
 
     renderSummary();
     renderWelcomeSummary();
@@ -99,6 +108,8 @@ function render() {
     renderTrendChart();
     renderActivityTimeline();
     renderRecurringExpenses();
+    renderSmartInsights();
+    renderFinanceTips();
 }
 
 function renderSummary() {
@@ -113,6 +124,174 @@ function renderSummary() {
     document.querySelector("#expenseValue").textContent = currency.format(expense);
     document.querySelector("#balanceValue").textContent = currency.format(income - expense);
     document.querySelector("#countValue").textContent = transactions.length;
+}
+
+function getFilteredTransactions() {
+    const query = searchInput.value.trim().toLowerCase();
+    const selectedType = filterType.value;
+    const selectedCategory = filterCategory.value;
+    const minAmount = Number.parseFloat(filterMinAmount.value);
+    const maxAmount = Number.parseFloat(filterMaxAmount.value);
+    const fromDate = filterDateFrom.value;
+    const toDate = filterDateTo.value;
+
+    return transactions.filter((transaction) => {
+        const matchesType = selectedType === "all" || transaction.type === selectedType;
+        const matchesCategory = selectedCategory === "all" || transaction.category === selectedCategory;
+        const searchable = `${transaction.title} ${transaction.category} ${transaction.note} ${transaction.receipt_name}`.toLowerCase();
+        const matchesSearch = !query || searchable.includes(query);
+        const matchesFrom = !fromDate || transaction.transaction_date >= fromDate;
+        const matchesTo = !toDate || transaction.transaction_date <= toDate;
+        const matchesMin = Number.isNaN(minAmount) || transaction.amount >= minAmount;
+        const matchesMax = Number.isNaN(maxAmount) || transaction.amount <= maxAmount;
+
+        return matchesType && matchesCategory && matchesSearch && matchesFrom && matchesTo && matchesMin && matchesMax;
+    });
+}
+
+function renderSmartInsights() {
+    if (!smartInsights || !insightStatus) return;
+
+    const insights = buildInsights();
+    insightStatus.textContent = transactions.length ? `${insights.length} insights` : "Waiting for data";
+    smartInsights.innerHTML = insights.map((insight) => `
+        <article class="insight-item ${insight.tone}">
+            <strong>${escapeHtml(insight.title)}</strong>
+            <p>${escapeHtml(insight.body)}</p>
+        </article>
+    `).join("");
+}
+
+function buildInsights() {
+    if (!transactions.length) {
+        return [{
+            tone: "neutral",
+            title: "Start with one transaction",
+            body: "Add income and expenses to unlock spending patterns, budget pressure, and category warnings.",
+        }];
+    }
+
+    const currentMonth = getCurrentMonth();
+    const previousMonth = getRecentMonths(2, currentMonth)[0];
+    const currentExpenses = sumTransactionsByMonth(currentMonth, "expense");
+    const previousExpenses = sumTransactionsByMonth(previousMonth, "expense");
+    const currentIncome = sumTransactionsByMonth(currentMonth, "income");
+    const insights = [];
+
+    if (previousExpenses > 0) {
+        const change = ((currentExpenses - previousExpenses) / previousExpenses) * 100;
+        if (change >= 15) {
+            insights.push({
+                tone: "warning",
+                title: "Expenses are rising",
+                body: `This month's expenses are ${Math.round(change)}% higher than last month.`,
+            });
+        } else if (change <= -15) {
+            insights.push({
+                tone: "positive",
+                title: "Spending is improving",
+                body: `This month's expenses are ${Math.abs(Math.round(change))}% lower than last month.`,
+            });
+        }
+    }
+
+    const categoryTotals = getExpenseCategoryTotals(transactions.filter((transaction) => transaction.transaction_date.startsWith(currentMonth)));
+    const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+    if (topCategory && currentExpenses > 0) {
+        const share = (topCategory[1] / currentExpenses) * 100;
+        insights.push({
+            tone: share > 45 ? "warning" : "neutral",
+            title: `${topCategory[0]} is your top spend`,
+            body: `${topCategory[0]} is ${Math.round(share)}% of this month's expenses.`,
+        });
+    }
+
+    if (budget.amount > 0 && currentExpenses > budget.amount) {
+        insights.push({
+            tone: "warning",
+            title: "Budget crossed",
+            body: `You are ${currency.format(currentExpenses - budget.amount)} above this month's budget.`,
+        });
+    } else if (budget.amount > 0 && currentExpenses >= budget.amount * 0.8) {
+        insights.push({
+            tone: "neutral",
+            title: "Budget is getting tight",
+            body: `You have used ${Math.round((currentExpenses / budget.amount) * 100)}% of this month's budget.`,
+        });
+    }
+
+    if (currentIncome > currentExpenses && currentIncome > 0) {
+        insights.push({
+            tone: "positive",
+            title: "Positive monthly cash flow",
+            body: `You are ahead by ${currency.format(currentIncome - currentExpenses)} this month.`,
+        });
+    }
+
+    if (!insights.length) {
+        insights.push({
+            tone: "neutral",
+            title: "Spending looks stable",
+            body: "No major warning signs yet. Keep logging transactions to improve the analysis.",
+        });
+    }
+
+    return insights.slice(0, 4);
+}
+
+function renderFinanceTips() {
+    if (!financeTips) return;
+
+    const tips = buildFinanceTips();
+    financeTips.innerHTML = tips.map((tip) => `
+        <article class="tip-item">
+            <strong>${escapeHtml(tip.title)}</strong>
+            <p>${escapeHtml(tip.body)}</p>
+        </article>
+    `).join("");
+}
+
+function buildFinanceTips() {
+    const currentMonth = getCurrentMonth();
+    const monthlyExpenses = sumTransactionsByMonth(currentMonth, "expense");
+    const categoryTotals = getExpenseCategoryTotals(transactions.filter((transaction) => transaction.transaction_date.startsWith(currentMonth)));
+    const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+    const tips = [];
+
+    if (topCategory) {
+        tips.push({
+            title: `Review ${topCategory[0]}`,
+            body: `Set a small weekly cap for ${topCategory[0]} to control your highest spending area.`,
+        });
+    }
+
+    if (recurringItems.length) {
+        tips.push({
+            title: "Check upcoming bills",
+            body: `You have ${recurringItems.length} recurring bill${recurringItems.length === 1 ? "" : "s"} saved. Post due bills before reviewing your real balance.`,
+        });
+    }
+
+    if (budget.amount > 0 && monthlyExpenses < budget.amount) {
+        tips.push({
+            title: "Move unused budget",
+            body: `If this month stays under budget, move part of the remaining ${currency.format(budget.amount - monthlyExpenses)} into savings.`,
+        });
+    }
+
+    if (!tips.length) {
+        tips.push({
+            title: "Build your baseline",
+            body: "Add a week of transactions first. FinTrack will then suggest better category-level actions.",
+        });
+    }
+
+    tips.push({
+        title: "Keep receipts attached",
+        body: "Attach receipts for larger expenses so tax, warranty, and reimbursement checks are easier later.",
+    });
+
+    return tips.slice(0, 3);
 }
 
 function renderWelcomeDate() {
@@ -236,6 +415,10 @@ function renderTable(items) {
 }
 
 function renderChart(items) {
+    if (chartFilterLabel) {
+        chartFilterLabel.textContent = `${items.length} filtered transactions`;
+    }
+
     const totals = items.reduce((groups, transaction) => {
         groups[transaction.category] = (groups[transaction.category] || 0) + transaction.amount;
         return groups;
@@ -263,12 +446,7 @@ function renderChart(items) {
 function renderDonutChart() {
     if (!categoryDonut || !donutLegend || !donutTotalLabel) return;
 
-    const expenseTotals = transactions
-        .filter((transaction) => transaction.type === "expense")
-        .reduce((groups, transaction) => {
-            groups[transaction.category] = (groups[transaction.category] || 0) + transaction.amount;
-            return groups;
-        }, {});
+    const expenseTotals = getExpenseCategoryTotals(transactions);
     const rows = Object.entries(expenseTotals).sort((a, b) => b[1] - a[1]);
     const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
 
@@ -549,7 +727,28 @@ receiptFile?.addEventListener("change", () => {
 });
 
 filterType.addEventListener("change", render);
+filterCategory.addEventListener("change", render);
+filterDateFrom.addEventListener("change", render);
+filterDateTo.addEventListener("change", render);
+filterMinAmount.addEventListener("input", render);
+filterMaxAmount.addEventListener("input", render);
 searchInput.addEventListener("input", render);
+clearFiltersBtn?.addEventListener("click", () => {
+    searchInput.value = "";
+    filterType.value = "all";
+    filterCategory.value = "all";
+    filterDateFrom.value = "";
+    filterDateTo.value = "";
+    filterMinAmount.value = "";
+    filterMaxAmount.value = "";
+    render();
+});
+exportCsvBtn?.addEventListener("click", exportTransactionsCsv);
+themeToggle?.addEventListener("click", () => {
+    const isLight = document.body.classList.toggle("light-theme");
+    localStorage.setItem("fintrack-theme", isLight ? "light" : "dark");
+    updateThemeToggle();
+});
 trendMonthPicker?.addEventListener("change", () => {
     selectedTrendMonth = trendMonthPicker.value || getCurrentMonth();
     renderTrendChart();
@@ -585,6 +784,62 @@ function formatRangeMonthLabel(value) {
         month: "short",
         year: "numeric",
     });
+}
+
+function sumTransactionsByMonth(month, type) {
+    return transactions
+        .filter((transaction) => transaction.type === type && transaction.transaction_date.startsWith(month))
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+}
+
+function getExpenseCategoryTotals(items) {
+    return items
+        .filter((transaction) => transaction.type === "expense")
+        .reduce((groups, transaction) => {
+            groups[transaction.category] = (groups[transaction.category] || 0) + transaction.amount;
+            return groups;
+        }, {});
+}
+
+function exportTransactionsCsv() {
+    const rows = currentFilteredTransactions.length ? currentFilteredTransactions : getFilteredTransactions();
+    const headers = ["Title", "Category", "Type", "Amount", "Date", "Note", "Receipt"];
+    const csv = [
+        headers.join(","),
+        ...rows.map((transaction) => [
+            transaction.title,
+            transaction.category,
+            transaction.type,
+            transaction.amount,
+            transaction.transaction_date,
+            transaction.note || "",
+            transaction.receipt_name || "",
+        ].map(csvCell).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `fintrack-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+}
+
+function csvCell(value) {
+    return `"${String(value).replaceAll('"', '""')}"`;
+}
+
+function applySavedTheme() {
+    const savedTheme = localStorage.getItem("fintrack-theme");
+    document.body.classList.toggle("light-theme", savedTheme === "light");
+    updateThemeToggle();
+}
+
+function updateThemeToggle() {
+    if (!themeToggle) return;
+    themeToggle.textContent = document.body.classList.contains("light-theme") ? "Dark mode" : "Light mode";
 }
 
 function readReceiptFile() {

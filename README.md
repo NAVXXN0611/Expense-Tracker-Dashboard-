@@ -15,11 +15,15 @@ For local development, the app automatically falls back to SQLite when `DATABASE
 - Protected internal dashboard after login
 - User-specific transaction records
 - Monthly budget goals
+- Smart spending insights and finance tips
 - Expense category donut chart
 - Income vs expense trend graph with month selector
 - Recent activity timeline
 - Recurring expenses with one-click transaction posting
 - Receipt image upload for transactions
+- CSV export for filtered transactions
+- Dark/light dashboard theme toggle
+- Advanced search and filters by date, category, type, and amount
 - Add income and expense transactions
 - Delete transactions
 - Search transactions

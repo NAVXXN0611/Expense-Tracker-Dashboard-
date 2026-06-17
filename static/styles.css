@@ -450,6 +450,32 @@ h1 {
     background: var(--black);
 }
 
+.dashboard-body.light-theme {
+    --black: #eef3f9;
+    --ink: #07111f;
+    --muted: #5c6678;
+    --white: #ffffff;
+    --off-white: #f8fafc;
+    --line: #d5dfec;
+    background: var(--black);
+}
+
+.dashboard-body.light-theme .site-header {
+    border-bottom-color: rgba(3, 7, 18, 0.08);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ink);
+}
+
+.dashboard-body.light-theme .customer-chip {
+    border-color: rgba(3, 7, 18, 0.12);
+    color: var(--ink);
+}
+
+.dashboard-body.light-theme .header-action.ghost {
+    border-color: rgba(3, 7, 18, 0.16);
+    color: var(--ink);
+}
+
 .internal-app-section {
     min-height: calc(100vh - 73px);
 }
@@ -467,6 +493,21 @@ h1 {
     font-weight: 900;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.theme-toggle {
+    width: auto;
+    min-height: 42px;
+    padding: 0 14px;
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.dashboard-body.light-theme .theme-toggle {
+    border-color: rgba(11, 99, 255, 0.2);
+    background: rgba(11, 99, 255, 0.08);
+    color: var(--blue);
 }
 
 .welcome-panel {
@@ -650,6 +691,59 @@ h1 {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 18px;
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.insight-panel .panel-header span,
+.tip-panel .panel-header span,
+.chart-panel .panel-header span {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 900;
+}
+
+.insight-list,
+.tip-list {
+    display: grid;
+    gap: 12px;
+}
+
+.insight-item,
+.tip-item {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--off-white);
+}
+
+.insight-item {
+    border-left: 4px solid var(--blue);
+}
+
+.insight-item.positive {
+    border-left-color: var(--success);
+}
+
+.insight-item.warning {
+    border-left-color: var(--danger);
+}
+
+.insight-item strong,
+.tip-item strong {
+    color: var(--ink);
+}
+
+.insight-item p,
+.tip-item p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
 }
 
 .trend-panel {
@@ -1176,6 +1270,27 @@ button:hover,
     margin: 0;
 }
 
+.filter-panel {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.4fr) repeat(2, minmax(130px, 0.8fr)) repeat(2, minmax(138px, 0.8fr)) repeat(2, minmax(120px, 0.7fr)) auto;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.filter-panel input,
+.filter-panel select {
+    min-height: 42px;
+}
+
+.filter-panel button,
+.panel-header > .secondary-btn {
+    width: auto;
+    min-height: 42px;
+    padding: 0 14px;
+    white-space: nowrap;
+}
+
 .table-wrap {
     overflow-x: auto;
 }
@@ -1429,6 +1544,7 @@ th {
 @media (max-width: 980px) {
     .hero-section,
     .workspace,
+    .insight-grid,
     .welcome-panel,
     .budget-panel {
         grid-template-columns: 1fr;
@@ -1440,6 +1556,10 @@ th {
 
     .recurring-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filter-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .budget-form button {
@@ -1503,6 +1623,16 @@ th {
 
     .trend-controls label,
     .trend-controls input {
+        width: 100%;
+    }
+
+    .filter-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-panel button,
+    .panel-header > .secondary-btn,
+    .theme-toggle {
         width: 100%;
     }
 
